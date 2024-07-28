@@ -1,10 +1,10 @@
 [general]
-shortlink_domain = "hub.link"
+shortlink_domain = "143.198.201.239"
 reticulum_server = "dev.reticulum.io"
 cors_proxy_server = "cors-proxy-dev.reticulum.io"
 thumbnail_server = "nearspark-dev.reticulum.io"
-non_cors_proxy_domains = "hubs.local,dev.reticulum.io"
-postgrest_server = "https://hubs.local:3000"
+non_cors_proxy_domains = "143.198.201.239,dev.reticulum.io"
+postgrest_server = "https://143.198.201.239:3000"
 ita_server = ""
 base_assets_path = "/"
 sentry_dsn = ""

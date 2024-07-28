@@ -36,7 +36,7 @@ function createHTTPSConfig() {
               },
               {
                 type: 2,
-                value: "hubs.local"
+                value: "143.198.201.239"
               }
             ]
           }
@@ -72,22 +72,22 @@ module.exports = (env, argv) => {
 
   if (env.local) {
     Object.assign(process.env, {
-      HOST: "hubs.local",
-      RETICULUM_SOCKET_SERVER: "hubs.local",
-      CORS_PROXY_SERVER: "hubs-proxy.local:4000",
-      NON_CORS_PROXY_DOMAINS: "hubs.local,dev.reticulum.io",
-      BASE_ASSETS_PATH: "https://hubs.local:8989/",
-      RETICULUM_SERVER: "hubs.local:4000",
+      HOST: "143.198.201.239",
+      RETICULUM_SOCKET_SERVER: "143.198.201.239",
+      CORS_PROXY_SERVER: "143.198.201.239:4000",
+      NON_CORS_PROXY_DOMAINS: "143.198.201.239,dev.reticulum.io",
+      BASE_ASSETS_PATH: "https://143.198.201.239:8989/",
+      RETICULUM_SERVER: "143.198.201.239:4000",
       POSTGREST_SERVER: "",
       ITA_SERVER: "turkey",
       TIER: "p1"
     });
   }
 
-  const defaultHostName = "hubs.local";
+  const defaultHostName = "143.198.201.239";
   const host = process.env.HOST_IP || defaultHostName;
 
-  const internalHostname = process.env.INTERNAL_HOSTNAME || "hubs.local";
+  const internalHostname = process.env.INTERNAL_HOSTNAME || "143.198.201.239";
   return {
     cache: {
       type: "filesystem"

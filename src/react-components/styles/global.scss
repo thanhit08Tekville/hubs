@@ -194,6 +194,8 @@ body[data-theme="light"],
   --color-interaction-secondary-alt-active: #e8e8e8;
   --color-interaction-secondary-alt-disabled: #e7e7e7;
 
+  iframe#webpack-dev-server-client-overlay{display:none!important}
+
   /**
   SEMANTIC
   **/
