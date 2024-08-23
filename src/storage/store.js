@@ -4,6 +4,7 @@ import Cookies from "js-cookie";
 import jwtDecode from "jwt-decode";
 import { qsGet } from "../utils/qs_truthy.js";
 import detectMobile, { isAndroid, isMobileVR } from "../utils/is-mobile";
+import configs from "../utils/configs.js";
 
 const LOCAL_STORE_KEY = "___hubs_store";
 const STORE_STATE_CACHE_KEY = Symbol();
@@ -311,18 +312,41 @@ export default class Store extends EventTarget {
   };
 
   initProfile = async () => {
-    if (this._shouldResetAvatarOnInit) {
-      await this.resetToRandomDefaultAvatar();
+    const qs = new URLSearchParams(location.search);
+    let displayName = '';
+    let avatarUrl = '';
+
+    if (qs.has("displayName")) {
+      displayName = qs.get("displayName");
     } else {
-      this.update({
-        profile: { avatarId: await fetchRandomDefaultAvatarId(), ...(this.state.profile || {}) }
-      });
+      displayName = "Student";
     }
 
-    // Regenerate name to encourage users to change it.
-    if (!this.state.activity.hasChangedNameOrPronouns) {
-      this.update({ profile: { displayName: generateRandomName() } });
+    console.log('displayName:', displayName);
+
+    if (qs.has("avatarUrl")) {
+      avatarUrl = `https://${configs.CORS_PROXY_SERVER}/${qs.get("avatarUrl")}`
+    } else {
+        avatarUrl = await fetchRandomDefaultAvatarId();
     }
+
+    console.log(`displayName=${displayName}`);
+    console.log(`avatarUrl=${avatarUrl}`);
+
+    this.update({ profile: { avatarId: avatarUrl, displayName: displayName } });
+
+    // if (this._shouldResetAvatarOnInit) {
+    //   await this.resetToRandomDefaultAvatar();
+    // } else {
+    //   this.update({
+    //     profile: { avatarId: await fetchRandomDefaultAvatarId(), ...(this.state.profile || {}) }
+    //   });
+    // }
+
+    // // Regenerate name to encourage users to change it.
+    // if (!this.state.activity.hasChangedNameOrPronouns) {
+    //   this.update({ profile: { displayName: generateRandomName() } });
+    // }
   };
 
   resetToRandomDefaultAvatar = async () => {
