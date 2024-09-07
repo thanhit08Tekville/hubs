@@ -17626,7 +17626,7 @@ function setValueV3f(gl, v) {
 				gl.uniform3fv(this.addr, v);
 				copyArray(cache, v);
 			} catch (e) {
-				console.log(e);
+				// console.log(e);
 			}
 		}
 
