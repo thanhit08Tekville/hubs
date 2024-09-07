@@ -299,7 +299,8 @@ module.exports = async (env, argv) => {
         // but they are "smart" and have builds for both ESM and CJS depending on if import or require is used.
         // This forces the ESM version to be used otherwise we end up with multiple instances of the libraries,
         // and for example AFRAME.THREE.Object3D !== THREE.Object3D in Hubs code, which breaks many things.
-        three$: path.resolve(__dirname, "./node_modules/three/build/three.module.js"),
+        // three$: path.resolve(__dirname, "./node_modules/three/build/three.module.js"),
+        three$: path.resolve(__dirname, "./mythree.module.js"),
         bitecs$: path.resolve(__dirname, "./node_modules/bitecs/dist/index.mjs"),
 
         // TODO these aliases are reequired because `three` only "exports" stuff in examples/jsm
