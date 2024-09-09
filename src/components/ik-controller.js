@@ -132,8 +132,8 @@ AFRAME.registerComponent("ik-controller", {
 
   update(oldData) {
     this.avatar = this.el.object3D;
-    console.log("avatar", this.avatar);
-    console.log("this.data", this.data);
+    // console.log("avatar", this.avatar);
+    // console.log("this.data", this.data);
 
     if (this.data.leftEye !== oldData.leftEye) {
       this.leftEye = this.el.object3D.getObjectByName(this.data.leftEye);
