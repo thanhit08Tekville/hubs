@@ -20,7 +20,7 @@ import { canMove as canMoveEntity } from "../utils/bit-permissions-utils";
 import { isPinned } from "../bit-systems/networking";
 import { takeOwnership } from "../utils/take-ownership";
 import { findAncestorWithComponents } from "../utils/bit-utils";
-import { HOLDABLE_FLAGS } from "../inflators/holdable";
+// import { HOLDABLE_FLAGS } from "../inflators/holdable";
 
 const GRAB_REMOTE_RIGHT = paths.actions.cursor.right.grab;
 const DROP_REMOTE_RIGHT = paths.actions.cursor.right.drop;
@@ -90,7 +90,7 @@ function grab(world, userinput, queryHovered, held, grabPath) {
     target &&
     userinput.get(grabPath) &&
     (!isEntityPinned || AFRAME.scenes[0].is("frozen")) &&
-    Holdable.flags[interactable] & HOLDABLE_FLAGS.ENABLED &&
+    // Holdable.flags[interactable] & HOLDABLE_FLAGS.ENABLED &&
     hasPermissionToGrab(world, target)
   ) {
     if (hasComponent(world, Networked, target)) {
