@@ -58,6 +58,11 @@
   height: 96px;
 }
 
+:local(.small) :local(.icon-container) {
+  width: 36px;
+  height: 36px;
+}
+
 :local(.basic),
 :local(.transparent) {
   :local(.icon-container) {

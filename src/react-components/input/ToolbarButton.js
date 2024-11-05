@@ -31,6 +31,7 @@ export const ToolbarButton = forwardRef(
       title,
       selected,
       large,
+      small,
       statusColor,
       type,
       disabled,
@@ -46,7 +47,7 @@ export const ToolbarButton = forwardRef(
           styles.toolbarButton,
           styles[preset],
           styles[type],
-          { [styles.selected]: selected, [styles.large]: large },
+          { [styles.selected]: selected, [styles.large]: large, [styles.small]: small },
           className
         )}
         disabled={disabled}
