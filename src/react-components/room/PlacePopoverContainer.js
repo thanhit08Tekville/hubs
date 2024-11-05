@@ -8,6 +8,7 @@ import { ReactComponent as GIFIcon } from "../icons/GIF.svg";
 import { ReactComponent as ObjectIcon } from "../icons/Object.svg";
 import { ReactComponent as AvatarIcon } from "../icons/Avatar.svg";
 import { ReactComponent as SceneIcon } from "../icons/Scene.svg";
+import { ReactComponent as CodeBranch } from "../icons/CodeBranch.svg";
 import { ReactComponent as UploadIcon } from "../icons/Upload.svg";
 import { PlacePopoverButton } from "./PlacePopover";
 import { ObjectUrlModalContainer } from "./ObjectUrlModalContainer";
@@ -15,6 +16,7 @@ import configs from "../../utils/configs";
 import { FormattedMessage } from "react-intl";
 import { anyEntityWith } from "../../utils/bit-utils";
 import { MyCameraTool } from "../../bit-components";
+import { MiniMapModalContainer } from "./MiniMapModalContainer";
 
 export function PlacePopoverContainer({ scene, mediaSearchStore, showNonHistoriedDialog, hubChannel }) {
   const [items, setItems] = useState([]);
@@ -76,6 +78,13 @@ export function PlacePopoverContainer({ scene, mediaSearchStore, showNonHistorie
             color: "accent1",
             label: <FormattedMessage id="place-popover.item-type.scene" defaultMessage="Scene" />,
             onSelect: () => mediaSearchStore.sourceNavigate("scenes")
+          },
+          {
+            id: "minimap",
+            icon: CodeBranch,
+            color: "accent1",
+            label: <FormattedMessage id="place-popover.item-type.map" defaultMessage="Map" />,
+            onSelect: () => showNonHistoriedDialog(MiniMapModalContainer, { scene, json: {} })
           },
           // TODO: Launch system file prompt directly
           {

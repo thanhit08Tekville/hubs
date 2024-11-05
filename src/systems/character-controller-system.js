@@ -157,7 +157,7 @@ export class CharacterControllerSystem {
     const startPOVPosition = new THREE.Vector3();
     const desiredPOVPosition = new THREE.Vector3();
     const navMeshSnappedPOVPosition = new THREE.Vector3();
-    const AVERAGE_WAYPOINT_TRAVEL_SPEED_METERS_PER_SECOND = 50;
+    const AVERAGE_WAYPOINT_TRAVEL_SPEED_METERS_PER_SECOND = 3;
     const startTransform = new THREE.Matrix4();
     const interpolatedWaypoint = new THREE.Matrix4();
     const startTranslation = new THREE.Matrix4();
