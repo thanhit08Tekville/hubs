@@ -140,6 +140,7 @@ import "./components/avatar-inspect-collider";
 import "./components/video-texture-target";
 import "./components/mirror";
 import "./components/fullbody-animation";
+import "./components/mini-map";
 
 
 import React from "react";

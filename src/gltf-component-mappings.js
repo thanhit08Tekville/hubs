@@ -17,6 +17,7 @@ AFRAME.GLTFModelPlus.registerComponent("duck", "duck", el => {
   el.setAttribute("quack", { quackPercentage: 0.1 });
 });
 AFRAME.GLTFModelPlus.registerComponent("quack", "quack");
+AFRAME.GLTFModelPlus.registerComponent("mini-map", "mini-map");
 AFRAME.GLTFModelPlus.registerComponent("sound", "sound");
 AFRAME.GLTFModelPlus.registerComponent("css-class", "css-class");
 AFRAME.GLTFModelPlus.registerComponent("interactable", "css-class", (el, componentName) => {
