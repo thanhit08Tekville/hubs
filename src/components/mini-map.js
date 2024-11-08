@@ -1,6 +1,23 @@
 AFRAME.registerComponent("mini-map", {
     init: function () {
         console.log("Mini-map component initialized");
+        this.arrowUp = document.getElementById("arrow_up");
+        this.arrowDown = document.getElementById("arrow_down");
+        this.arrowLeft = document.getElementById("arrow_left");
+        this.arrowRight = document.getElementById("arrow_right");
+
+        if (this.arrowUp) this.arrowUp.addEventListener("click", () => this.moveCamera("up"));
+        if (this.arrowDown) this.arrowDown.addEventListener("click", () => this.moveCamera("down"));
+        if (this.arrowLeft) this.arrowLeft.addEventListener("click", () => this.moveCamera("left"));
+        if (this.arrowRight) this.arrowRight.addEventListener("click", () => this.moveCamera("right"));
+
+
+        // Zoom controls
+        this.zoomInButton = document.getElementById("zoom_in");
+        this.zoomOutButton = document.getElementById("zoom_out");
+
+        if (this.zoomInButton) this.zoomInButton.addEventListener("click", () => this.zoom("zoomIn"));
+        if (this.zoomOutButton) this.zoomOutButton.addEventListener("click", () => this.zoom("zoomOut"));
 
         // Canvas and context for mini-map
         this.canvas = document.getElementById("miniMap");
@@ -26,8 +43,63 @@ AFRAME.registerComponent("mini-map", {
         if (this.user) {
             this.previousPosition.copy(this.user.object3D.position);
         }
+        this.raycaster = new THREE.Raycaster();
         this.angle = 0;
         this.previousCameraRotation = 0;
+    },
+    moveCamera: function (direction) {
+        const moveStep = 1; // Adjust as needed for movement speed
+        const currentCameraPosition = this.miniMapCamera.position;
+        this.miniMapCamera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
+
+        switch (direction) {
+            case "up":
+                // Move the camera using the direction
+                this.miniMapCamera.position.set(currentCameraPosition.x, currentCameraPosition.y, currentCameraPosition.z + moveStep);
+                break;
+            case "down":
+                this.miniMapCamera.position.set(currentCameraPosition.x, currentCameraPosition.y, currentCameraPosition.z - moveStep);
+                break;
+            case "left":
+                this.miniMapCamera.position.set(currentCameraPosition.x - moveStep, currentCameraPosition.y, currentCameraPosition.z);
+                break;
+            case "right":
+                this.miniMapCamera.position.set(currentCameraPosition.x + moveStep, currentCameraPosition.y, currentCameraPosition.z);
+                break;
+        }
+        const newCameraPosition = this.miniMapCamera.position;
+        this.miniMapCamera.lookAt(new THREE.Vector3(newCameraPosition.x, 0, newCameraPosition.z));
+        this.updateMiniMap();
+    },
+    zoom: function (direction) {
+        const zoomStep = 1; // Adjust as needed for movement speed
+        const currentCameraPosition = this.miniMapCamera.position;
+        this.miniMapCamera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
+
+        switch (direction) {
+            case "zoomIn":
+                // Move the camera using the direction
+                this.miniMapCamera.position.set(currentCameraPosition.x, currentCameraPosition.y - zoomStep, currentCameraPosition.z);
+                break;
+            case "zoomOut":
+                this.miniMapCamera.position.set(currentCameraPosition.x, currentCameraPosition.y + zoomStep, currentCameraPosition.z);
+                break;
+        }
+        this.miniMapCamera.lookAt(new THREE.Vector3(currentCameraPosition.x, 0, currentCameraPosition.z));
+        this.updateMiniMap();
+    },
+
+    calculateScaleFactor: function () {
+        // Calculate distance from camera to user for dynamic scaling
+        const cameraPosition = this.miniMapCamera.position;
+        const userPosition = this.camera.object3D.position;
+
+        // Set raycaster to go from camera position to user position
+        // this.raycaster.set(cameraPosition, new THREE.Vector3().subVectors(userPosition, cameraPosition).normalize());
+
+        // Calculate distance and use it as an inverse scale factor
+        const distance = cameraPosition.distanceTo(userPosition);
+        return (this.width / distance);
     },
 
     updateCanvasSize: function () {
@@ -59,11 +131,13 @@ AFRAME.registerComponent("mini-map", {
         if (this.user) {
             const userPosition = this.user.object3D.position;
             const movementDirection = new THREE.Vector3().subVectors(userPosition, this.previousPosition);
-
+            const scaleFactor = this.calculateScaleFactor();
             // Only update the arrow if there's movement
             if (movementDirection.length() > 0.01) {
-                const mapX = (userPosition.x * 10) + this.width / 2;
-                const mapY = (-userPosition.z * 10) + this.height / 2;
+                const cameraOffsetX = userPosition.x - this.miniMapCamera.position.x;
+                const cameraOffsetZ = userPosition.z - this.miniMapCamera.position.z;
+                const mapX = (cameraOffsetX * scaleFactor) + this.width / 2;
+                const mapY = (-cameraOffsetZ * scaleFactor) + this.height / 2;
                 const angle = Math.atan2(movementDirection.x, movementDirection.z); // Calculate movement angle
                 this.angle = angle;
 
@@ -71,7 +145,7 @@ AFRAME.registerComponent("mini-map", {
                 this.ctx.save();
                 this.ctx.translate(mapX, mapY);
                 this.ctx.rotate(angle); // Rotate arrow to match movement direction
-                this.ctx.fillStyle = "red";
+                this.ctx.fillStyle = "blue";
                 this.ctx.beginPath();
                 this.ctx.moveTo(0, -10);  // Arrow point
                 this.ctx.lineTo(-5, 5);   // Left wing
@@ -86,13 +160,16 @@ AFRAME.registerComponent("mini-map", {
             } else {
                 const cameraRotation = this.camera.object3D.rotation.y
                 const rotationDelta = cameraRotation - this.previousCameraRotation;
-                const mapX = (userPosition.x * 10) + this.width / 2;
-                const mapY = (-userPosition.z * 10) + this.height / 2;
+                // Calculate offset based on the mini-map camera's position
+                const cameraOffsetX = userPosition.x - this.miniMapCamera.position.x;
+                const cameraOffsetZ = userPosition.z - this.miniMapCamera.position.z;
+                const mapX = (cameraOffsetX * scaleFactor) + this.width / 2;
+                const mapY = (-cameraOffsetZ * scaleFactor) + this.height / 2;
                 // Draw the user as an arrow pointing in the direction of movement
                 this.ctx.save();
                 this.ctx.translate(mapX, mapY);
                 this.ctx.rotate(this.angle + rotationDelta); // Rotate arrow to match movement direction
-                this.ctx.fillStyle = "red";
+                this.ctx.fillStyle = "blue";
                 this.ctx.beginPath();
                 this.ctx.moveTo(0, -10);  // Arrow point
                 this.ctx.lineTo(-5, 5);   // Left wing

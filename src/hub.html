@@ -60,6 +60,94 @@
             }
         }
     </style>
+
+    <style>
+        /* Style the mini-map container */
+        #miniMapContainer {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            top: 10px;
+            left: 10px;
+            /* border-radius: 50%; */
+            /*  overflow: hidden;*/
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Circle overlay for arrow controls */
+        #controlsOverlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        /* Style the control arrows */
+        .arrow {
+            width: 20px;
+            height: 20px;
+            position: absolute;
+            background: rgba(255, 0, 0, 0.7);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            pointer-events: all;
+            cursor: pointer;
+        }
+
+        /* Positioning each arrow */
+        .arrow.up {
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%) rotate(0deg);
+        }
+
+        .arrow.down {
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%) rotate(180deg);
+        }
+
+        .arrow.left {
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%) rotate(-90deg);
+        }
+
+        .arrow.right {
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%) rotate(90deg);
+        }
+
+        /* Zoom button styling */
+        .zoom-button {
+            position: absolute;
+            bottom: 10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-size: 18px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Position zoom-in and zoom-out buttons */
+        #zoom_in {
+            right: 10px;
+        }
+
+        #zoom_out {
+            left: 10px;
+        }
+    </style>
 </head>
 
 <body>
@@ -888,7 +976,26 @@
 
     <div id="ui-root"></div>
     <div id="preload-overlay"></div>
-    <canvas id="miniMap" width="200" height="200" style="position: fixed; top: 10px; left: 10px; border: 2px solid white;"></canvas>
+    <!-- Mini-map container -->
+    <div id="miniMapContainer">
+        <!-- Mini-map canvas -->
+        <!-- <canvas id="miniMap"></canvas> -->
+        <canvas id="miniMap" width="200" height="200"
+            style="position: fixed; top: 10px; left: 10px; border: 2px solid white;"></canvas>
+        <!-- Control overlay with arrows -->
+        <div id="controlsOverlay">
+            <div id="arrow_up" class="arrow up"></div>
+            <div id="arrow_down" class="arrow down"></div>
+            <div id="arrow_left" class="arrow left"></div>
+            <div id="arrow_right" class="arrow right"></div>
+        </div>
+
+        <!-- Zoom controls -->
+        <button id="zoom_in" class="zoom-button">+</button>
+        <button id="zoom_out" class="zoom-button">-</button>
+    </div>
+    <!-- <canvas id="miniMap" width="200" height="200"
+        style="position: fixed; top: 10px; left: 10px; border: 2px solid white;"></canvas> -->
 </body>
 
 </html>
