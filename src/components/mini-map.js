@@ -1,3 +1,5 @@
+const NAV_ZONE = "character";
+
 AFRAME.registerComponent("mini-map", {
     init: function () {
         console.log("Mini-map component initialized");
@@ -7,6 +9,12 @@ AFRAME.registerComponent("mini-map", {
         this.setupScene();
         this.setupUser();
         this.setupRaycaster();
+        this.characterController = this.el.sceneEl.systems["hubs-systems"].characterController;
+        this.canvas.addEventListener("click", (event) => this.onMiniMapClick(event));
+        // Other initialization code here...
+        this.raycaster = new THREE.Raycaster();
+        this.isNavigating = false;
+        this.destination = null;
     },
 
     setupControls: function () {
@@ -61,6 +69,27 @@ AFRAME.registerComponent("mini-map", {
 
     setupRaycaster: function () {
         this.raycaster = new THREE.Raycaster();
+    },
+
+    onMiniMapClick: function (event) {
+        const rect = this.canvas.getBoundingClientRect();
+        const x = ((event.clientX - rect.left) / this.canvas.width) * 2 - 1;
+        const y = -((event.clientY - rect.top) / this.canvas.height) * 2 + 1;
+
+        const mouseVector = new THREE.Vector2(x, y);
+        this.raycaster.setFromCamera(mouseVector, this.miniMapCamera);
+
+        const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+        const destination = new THREE.Vector3();
+        this.raycaster.ray.intersectPlane(groundPlane, destination);
+        destination.z = -destination.z;
+        // Set navigation to the calculated 3D destination
+        this.navigateTo(destination);
+    },
+
+    navigateTo: function (destination) {
+        this.destination = destination;
+        this.isNavigating = true;
     },
 
     moveCamera: function (direction) {
@@ -119,7 +148,66 @@ AFRAME.registerComponent("mini-map", {
         }
     },
 
-    tick: function () {
+    teleportTo: function (targetWorldPosition) {
+        const rig = new THREE.Vector3();
+        const head = new THREE.Vector3();
+        const deltaFromHeadToTargetForHead = new THREE.Vector3();
+        const targetForHead = new THREE.Vector3();
+        const targetForRig = new THREE.Vector3();
+
+        this.didTeleportSinceLastWaypointTravel = true;
+        this.isMotionDisabled = false;
+        this.user.object3D.getWorldPosition(rig);
+        this.camera.object3D.getWorldPosition(head);
+        targetForHead.copy(targetWorldPosition);
+        targetForHead.y += this.camera.object3D.position.y;
+        deltaFromHeadToTargetForHead.copy(targetForHead).sub(head);
+        targetForRig.copy(rig).add(deltaFromHeadToTargetForHead);
+        const navMeshExists = NAV_ZONE in this.scene.systems.nav.pathfinder.zones;
+        this.findPositionOnNavMesh(targetForRig, targetForRig, this.user.object3D.position, navMeshExists);
+        this.user.object3D.matrixNeedsUpdate = true;
+
+    },
+
+    tick: function (time, timeDelta) {
+        if (this.isNavigating && this.destination) {
+            this.characterController.isNavigating = true;
+            const userPosition = this.user.object3D.position;
+            const direction = new THREE.Vector3().subVectors(this.destination, userPosition);
+            const cameraForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.object3D.quaternion);
+            const angle = Math.atan2(direction.x, direction.z) - Math.atan2(cameraForward.x, cameraForward.z);
+
+
+            if (Math.abs(angle) < 0.01) {
+            } else {
+                // Smoothly rotate the camera to face the destination direction
+                this.camera.object3D.rotation.y += angle * 0.05; // Adjust rotation speed as needed
+                this.updateMiniMap();
+                return;
+            }
+
+            // Dynamic speed increase with acceleration
+            const baseSpeed = 0.001; // Starting speed
+            const maxSpeed = 0.01;   // Maximum speed
+            const acceleration = 0.0001; // Acceleration factor
+            // Gradually increase speed up to the max speed
+            const distanceToDestination = userPosition.distanceTo(this.destination);
+            let speed = Math.min(baseSpeed + acceleration * timeDelta, maxSpeed);
+
+            // Calculate the step vector
+            const step = direction.normalize().multiplyScalar(speed * timeDelta);
+
+            userPosition.add(step);
+
+            if (distanceToDestination < 0.3) {
+                // userPosition.copy(this.destination);
+                this.characterController.teleportTo(this.destination);
+                this.isNavigating = false;
+                this.destination = null;
+                this.characterController.isNavigating = false;
+
+            }
+        }
         this.updateMiniMap();
     },
 
@@ -147,6 +235,7 @@ AFRAME.registerComponent("mini-map", {
 
         if (movementDirection.length() > 0.01) {
             this.updateArrowPosition(userPosition, movementDirection, scaleFactor);
+            console.log("User position: ", userPosition);
         } else {
             this.updateArrowRotation(userPosition, scaleFactor);
         }

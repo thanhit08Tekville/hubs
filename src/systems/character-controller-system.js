@@ -49,6 +49,7 @@ export class CharacterControllerSystem {
   constructor(scene) {
     this.scene = scene;
     this.fly = false;
+    this.isNavigating = false;
     this.shouldLandWhenPossible = false;
     this.waypoints = [];
     this.waypointTravelStartTime = 0;
@@ -170,6 +171,7 @@ export class CharacterControllerSystem {
       uiRoot = uiRoot || document.getElementById("ui-root");
       const isGhost = !entered && uiRoot && uiRoot.firstChild && uiRoot.firstChild.classList.contains("isGhost");
       if (!isGhost && !entered) return;
+      if (this.isNavigating) return;
       const vrMode = this.scene.is("vr-mode");
       this.sfx = this.sfx || this.scene.systems["hubs-systems"].soundEffectsSystem;
       this.waypointSystem = this.waypointSystem || this.scene.systems["hubs-systems"].waypointSystem;
