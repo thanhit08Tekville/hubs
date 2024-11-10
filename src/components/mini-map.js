@@ -85,6 +85,7 @@ AFRAME.registerComponent("mini-map", {
         destination.z = -destination.z;
         // Set navigation to the calculated 3D destination
         this.navigateTo(destination);
+        this.startRotation = true;
     },
 
     navigateTo: function (destination) {
@@ -173,17 +174,27 @@ AFRAME.registerComponent("mini-map", {
         if (this.isNavigating && this.destination) {
             this.characterController.isNavigating = true;
             const userPosition = this.user.object3D.position;
-            const direction = new THREE.Vector3().subVectors(this.destination, userPosition);
-            const cameraForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.object3D.quaternion);
+            const direction = new THREE.Vector3().subVectors(this.destination, userPosition).normalize();
+
+            // Project both vectors to the XZ plane
+            direction.y = 0;
+            const cameraForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.object3D.quaternion).normalize();
+            cameraForward.y = 0;
+
+            // Calculate the angle between the two vectors
             const angle = Math.atan2(direction.x, direction.z) - Math.atan2(cameraForward.x, cameraForward.z);
 
 
             if (Math.abs(angle) < 0.01) {
+                this.startRotation = false;
             } else {
-                // Smoothly rotate the camera to face the destination direction
-                this.camera.object3D.rotation.y += angle * 0.05; // Adjust rotation speed as needed
-                this.updateMiniMap();
-                return;
+                if (this.startRotation) {
+                    // console.log("Angle: ", angle, "Camera rotation: ", this.camera.object3D.rotation.y);
+                    // Smoothly rotate the camera to face the destination direction
+                    this.camera.object3D.rotation.y += angle * 0.05; // Adjust rotation speed as needed
+                    this.updateMiniMap();
+                    return;
+                }
             }
 
             // Dynamic speed increase with acceleration
@@ -199,13 +210,16 @@ AFRAME.registerComponent("mini-map", {
 
             userPosition.add(step);
 
-            if (distanceToDestination < 0.3) {
+            if (distanceToDestination < 1.0) {
                 // userPosition.copy(this.destination);
                 this.characterController.teleportTo(this.destination);
                 this.isNavigating = false;
                 this.destination = null;
                 this.characterController.isNavigating = false;
-
+                this.startRotation = false;
+                // console.log("Reached destination");
+            } else {
+                // console.log("Distance to destination: ", distanceToDestination);
             }
         }
         this.updateMiniMap();
@@ -235,7 +249,7 @@ AFRAME.registerComponent("mini-map", {
 
         if (movementDirection.length() > 0.01) {
             this.updateArrowPosition(userPosition, movementDirection, scaleFactor);
-            console.log("User position: ", userPosition);
+            // console.log("User position: ", userPosition);
         } else {
             this.updateArrowRotation(userPosition, scaleFactor);
         }
