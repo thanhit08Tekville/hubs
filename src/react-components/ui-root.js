@@ -105,6 +105,7 @@ import { usePermissions } from "./room/hooks/usePermissions";
 import { ChatContextProvider } from "./room/contexts/ChatContext";
 import ChatToolbarButton from "./room/components/ChatToolbarButton/ChatToolbarButton";
 import SeePlansCTA from "./room/components/SeePlansCTA/SeePlansCTA";
+import { WebGLContentModalContainer } from "./room/WebGLContentModalContainer";
 
 const avatarEditorDebug = qsTruthy("avatarEditorDebug");
 
@@ -337,6 +338,9 @@ class UIRoot extends Component {
     });
     this.props.scene.addEventListener("action_toggle_ui", () =>
       this.setState({ hide: !this.state.hide, hideUITip: false })
+    );
+    this.props.scene.addEventListener("action_toggle_iframe", (action, content) =>
+      this.showNonHistoriedDialog(WebGLContentModalContainer, { scene, url: action.detail["href"] })
     );
     this.props.scene.addEventListener("action_toggle_record", () => {
       const cursor = document.querySelector("#right-cursor");

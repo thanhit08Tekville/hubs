@@ -94,6 +94,8 @@ import { snapMediaSystem } from "../bit-systems/snap-media-system";
 import { scaleWhenGrabbedSystem } from "../bit-systems/scale-when-grabbed-system";
 import { interactableSystem } from "../bit-systems/interactable-system";
 import { SystemConfigT } from "../types";
+import { TFCIframeSystem } from "../bit-systems/iframe";
+
 
 declare global {
   interface Window {
@@ -352,6 +354,8 @@ export function mainTick(xrFrame: XRFrame, renderer: WebGLRenderer, scene: Scene
   APP.addon_systems.afterRender.forEach((systemConfig: SystemConfigT) => {
     systemConfig.system(APP);
   });
+
+  TFCIframeSystem(world);
 
   // tock()s on components and system will fire here. (As well as any other time render() is called without unbinding onAfterRender)
   // TODO inline invoking tocks instead of using onAfterRender registered in a-scene

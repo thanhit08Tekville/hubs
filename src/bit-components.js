@@ -503,3 +503,8 @@ export const ObjectMenuTransform = defineComponent({
   prevObjectRef: Types.eid,
   flags: Types.ui8
 });
+
+export const TFCIframe = defineComponent({
+  href: Types.ui32,
+});
+TFCIframe.href[$isStringType] = true;

@@ -9,6 +9,9 @@ import { commonInflators, renderAsEntity } from "./utils/jsx-entity";
 import { Networked } from "./bit-components";
 import { addComponent } from "bitecs";
 
+import { inflateTFCIframe } from "./inflators/iframe";
+
+
 const inflatorWrapper = inflator => (el, _componentName, componentData) =>
   inflator(APP.world, el.object3D.eid, componentData);
 
@@ -599,3 +602,5 @@ AFRAME.GLTFModelPlus.registerComponent("reflection-probe", "reflection-probe", (
 
   el.setAttribute(componentName, componentData);
 });
+
+AFRAME.GLTFModelPlus.registerComponent("iframe", "iframe", inflatorWrapper(inflateTFCIframe));

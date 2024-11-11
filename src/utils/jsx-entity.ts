@@ -103,6 +103,7 @@ import { inflatePlane, PlaneParams } from "../inflators/plane";
 import { FollowInFovParams, inflateFollowInFov } from "../inflators/follow-in-fov";
 import { ComponentDataT } from "../types";
 import { HoldableParams, inflateHoldable } from "../inflators/holdable";
+import { TFCIframeParams, inflateTFCIframe } from "../inflators/iframe";
 
 preload(
   new Promise(resolve => {
@@ -376,6 +377,7 @@ export interface JSXComponentData extends ComponentData {
   objectMenuTarget?: OptionalParams<ObjectMenuTargetParams>;
   plane?: PlaneParams;
   text?: TextParams;
+  tfcIframe?: TFCIframeParams;
 }
 
 export interface GLTFComponentData extends ComponentData {
@@ -414,6 +416,8 @@ export interface GLTFComponentData extends ComponentData {
   boxCollider?: BoxColliderParams;
   trimesh?: true;
   heightfield?: HeightFieldParams;
+
+  tfcIframe?: TFCIframeParams;
 }
 
 declare global {
@@ -500,7 +504,8 @@ export const jsxInflators: Required<{ [K in keyof ComponentDataT]: InflatorFn }>
   link: inflateLink,
   objectMenuTransform: inflateObjectMenuTransform,
   objectMenuTarget: inflateObjectMenuTarget,
-  plane: inflatePlane
+  plane: inflatePlane,
+  tfcIframe: inflateTFCIframe,
 };
 
 export const gltfInflators: Required<{ [K in keyof ComponentDataT]: InflatorFn }> = {
@@ -539,7 +544,8 @@ export const gltfInflators: Required<{ [K in keyof ComponentDataT]: InflatorFn }
   mediaLink: inflateMediaLink,
   rigidbody: inflateGLTFRigidBody,
   physicsShape: inflateAmmoShape,
-  text: inflateGLTFText
+  text: inflateGLTFText,
+  tfcIframe: inflateTFCIframe,
 };
 
 function jsxInflatorExists(name: string) {
