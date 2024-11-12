@@ -95,6 +95,7 @@ import { scaleWhenGrabbedSystem } from "../bit-systems/scale-when-grabbed-system
 import { interactableSystem } from "../bit-systems/interactable-system";
 import { SystemConfigT } from "../types";
 import { TFCIframeSystem } from "../bit-systems/iframe";
+import { pdfviewerSystem } from "../bit-systems/pdfviewer-system";
 
 
 declare global {
@@ -356,6 +357,7 @@ export function mainTick(xrFrame: XRFrame, renderer: WebGLRenderer, scene: Scene
   });
 
   TFCIframeSystem(world);
+  pdfviewerSystem(world);
 
   // tock()s on components and system will fire here. (As well as any other time render() is called without unbinding onAfterRender)
   // TODO inline invoking tocks instead of using onAfterRender registered in a-scene
