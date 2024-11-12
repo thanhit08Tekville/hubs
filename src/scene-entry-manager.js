@@ -134,6 +134,8 @@ export default class SceneEntryManager {
     this.scene.addState("entered");
 
     APP.mediaDevicesManager.micEnabled = !muteOnEntry;
+    // Signal that the scene has been entered
+    this.scene.emit("scene-entered");
   };
 
   whenSceneLoaded = callback => {

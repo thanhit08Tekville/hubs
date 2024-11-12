@@ -139,6 +139,24 @@
             box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
         }
 
+        .select-waypoint {
+            position: absolute;
+            bottom: -35px;
+            width: 204px;
+            height: 30px;
+            font-size: 15px;
+            padding: 2px;
+            background-color: rgba(0, 0, 0, 1);
+            color: white;
+            border-radius: 5%;
+            border: solid 2px white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
+        }
+
         /* Position zoom-in and zoom-out buttons */
         #zoom_in {
             right: 10px;
@@ -993,7 +1011,10 @@
         <!-- Zoom controls -->
         <button id="zoom_in" class="zoom-button">+</button>
         <button id="zoom_out" class="zoom-button">-</button>
-    </div>
+        <select id="select_waypoint" class="select-waypoint">
+            <option value="" disabled>Select a waypoint</option>
+        </select>
+    </div>    
     <!-- <canvas id="miniMap" width="200" height="200"
         style="position: fixed; top: 10px; left: 10px; border: 2px solid white;"></canvas> -->
 </body>

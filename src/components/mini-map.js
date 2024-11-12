@@ -1,3 +1,5 @@
+import { isLocalHubsUrl, isHubsRoomUrl } from "../utils/media-url-utils";
+
 const NAV_ZONE = "character";
 
 AFRAME.registerComponent("mini-map", {
@@ -9,12 +11,85 @@ AFRAME.registerComponent("mini-map", {
         this.setupScene();
         this.setupUser();
         this.setupRaycaster();
+
+        this.el.sceneEl.addEventListener("scene-entered", () => {
+            this.setupDropdown();
+        });
+
+        this.el.sceneEl.addEventListener("navigation-end", () => {
+            this.playAnimation("Idle");
+        });
         this.characterController = this.el.sceneEl.systems["hubs-systems"].characterController;
         this.canvas.addEventListener("click", (event) => this.onMiniMapClick(event));
         // Other initialization code here...
         this.raycaster = new THREE.Raycaster();
         this.isNavigating = false;
         this.destination = null;
+    },
+
+    setupDropdown: function () {
+        this.dropdown = document.getElementById("select_waypoint");
+        this.loadWaypoints().then(waypoints => {
+            waypoints.forEach(waypoint => {
+                const option = document.createElement("option");
+                option.value = `#${waypoint.name}`;
+                option.text = waypoint.name;
+                option.id = waypoint.id
+                this.dropdown.appendChild(option);
+            });
+        });
+        this.addEventOnChange();
+
+    },
+
+    loadWaypoints: function () {
+        const fetchWaypoints = async () => {
+            // Replace with actual query logic to get waypoint entities in the scene
+            const waypointEntities = document.querySelectorAll("[waypoint]");
+            console.log("waypointEntities", waypointEntities);
+            const waypointList = Array.from(waypointEntities).map(entity => ({
+                id: entity.eid,
+                name: entity.className, // Replace with actual waypoint name
+            }));
+            return waypointList;
+        };
+
+        return fetchWaypoints();
+    },
+
+    addEventOnChange: function () {
+        if (this.dropdown) {
+            this.dropdown.addEventListener("change", (event) => this.handleWaypointChange(event));
+        }
+    },
+
+    changeRoom: async function (linkUrl) {
+        if (!linkUrl) return;
+        this.playAnimation("Walking");
+        const cur_url = window.location.href;
+        const orgin = cur_url.split("#")[0];
+        linkUrl = orgin + linkUrl;
+        const currnetHubId = await isHubsRoomUrl(window.location.href);
+        const exitImmersive = async () => await handleExitTo2DInterstitial(false, () => { }, true);
+        let gotoHubId;
+
+        if ((gotoHubId = await isHubsRoomUrl(linkUrl))) {
+            const url = new URL(linkUrl);
+            if (currnetHubId === gotoHubId && url.hash) {
+                window.history.replaceState(null, "", window.location.href.split("#")[0] + url.hash);
+            } else if (await isLocalHubsUrl(linkUrl)) {
+                let waypoint = url.hash ? url.hash.substring(1) : "";
+                changeHub(gotoHubId, true, waypoint);
+            } else {
+                await exitImmersive();
+                location.href = linkUrl;
+            }
+        }
+    },
+
+    handleWaypointChange: function (event) {
+        const selectedValue = event.target.value;
+        this.changeRoom(selectedValue);
     },
 
     setupControls: function () {
@@ -90,6 +165,7 @@ AFRAME.registerComponent("mini-map", {
 
     navigateTo: function (destination) {
         this.destination = destination;
+        this.playAnimation("Walking");
         this.isNavigating = true;
     },
 
@@ -149,6 +225,8 @@ AFRAME.registerComponent("mini-map", {
         }
     },
 
+
+
     teleportTo: function (targetWorldPosition) {
         const rig = new THREE.Vector3();
         const head = new THREE.Vector3();
@@ -185,17 +263,17 @@ AFRAME.registerComponent("mini-map", {
             const angle = Math.atan2(direction.x, direction.z) - Math.atan2(cameraForward.x, cameraForward.z);
 
 
-            if (Math.abs(angle) < 0.01) {
-                this.startRotation = false;
-            } else {
-                if (this.startRotation) {
-                    // console.log("Angle: ", angle, "Camera rotation: ", this.camera.object3D.rotation.y);
-                    // Smoothly rotate the camera to face the destination direction
-                    this.camera.object3D.rotation.y += angle * 0.05; // Adjust rotation speed as needed
-                    this.updateMiniMap();
-                    return;
-                }
-            }
+            // if (Math.abs(angle) < 0.01) {
+            //     this.startRotation = false;
+            // } else {
+            //     if (this.startRotation) {
+            // console.log("Angle: ", angle, "Camera rotation: ", this.camera.object3D.rotation.y);
+            // Smoothly rotate the camera to face the destination direction
+            this.camera.object3D.rotation.y += angle * 0.05; // Adjust rotation speed as needed
+            //         this.updateMiniMap();
+            //         return;
+            //     }
+            // }
 
             // Dynamic speed increase with acceleration
             const baseSpeed = 0.001; // Starting speed
@@ -217,12 +295,22 @@ AFRAME.registerComponent("mini-map", {
                 this.destination = null;
                 this.characterController.isNavigating = false;
                 this.startRotation = false;
-                // console.log("Reached destination");
+                const avatarRoot = document.querySelectorAll("[fullbody-animation-play]");
+                if (avatarRoot.length > 0) {
+                    avatarRoot[0].components["fullbody-animation-play"].playAnimation("Idle");
+                }
             } else {
                 // console.log("Distance to destination: ", distanceToDestination);
             }
         }
         this.updateMiniMap();
+    },
+
+    playAnimation: function (animationName) {
+        const avatarRoot = document.querySelectorAll("[fullbody-animation-play]");
+        if (avatarRoot.length > 0) {
+            avatarRoot[0].components["fullbody-animation-play"].playAnimation(animationName);
+        }
     },
 
     updateMiniMap: function () {

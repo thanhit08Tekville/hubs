@@ -229,6 +229,8 @@ export class CharacterControllerSystem {
         if (vrMode || this.waypointTravelTime > 0) {
           this.sfx.playSoundOneShot(SOUND_WAYPOINT_END);
         }
+        // Signal that the navigation has ended
+        this.scene.emit("navigation-end");
       }
 
       const userinput = AFRAME.scenes[0].systems.userinput;
