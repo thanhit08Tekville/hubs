@@ -5,23 +5,28 @@ const NAV_ZONE = "character";
 AFRAME.registerComponent("mini-map", {
     init: function () {
         console.log("Mini-map component initialized");
+        this.setupComponents();
+        this.setupEventListeners();
+        this.initializeProperties();
+    },
+
+    setupComponents: function () {
         this.setupControls();
         this.setupCanvas();
         this.setupThreeJS();
         this.setupScene();
         this.setupUser();
         this.setupRaycaster();
+    },
 
-        this.el.sceneEl.addEventListener("scene-entered", () => {
-            this.setupDropdown();
-        });
+    setupEventListeners: function () {
+        this.el.sceneEl.addEventListener("scene-entered", this.setupDropdown.bind(this));
+        this.el.sceneEl.addEventListener("navigation-end", () => this.playAnimation("Idle"));
+        this.canvas.addEventListener("click", this.onMiniMapClick.bind(this));
+    },
 
-        this.el.sceneEl.addEventListener("navigation-end", () => {
-            this.playAnimation("Idle");
-        });
+    initializeProperties: function () {
         this.characterController = this.el.sceneEl.systems["hubs-systems"].characterController;
-        this.canvas.addEventListener("click", (event) => this.onMiniMapClick(event));
-        // Other initialization code here...
         this.raycaster = new THREE.Raycaster();
         this.isNavigating = false;
         this.destination = null;
@@ -34,32 +39,29 @@ AFRAME.registerComponent("mini-map", {
                 const option = document.createElement("option");
                 option.value = `#${waypoint.name}`;
                 option.text = waypoint.name;
-                option.id = waypoint.id
+                option.id = waypoint.id;
+                option.position = waypoint.position;
                 this.dropdown.appendChild(option);
             });
         });
         this.addEventOnChange();
-
     },
 
-    loadWaypoints: function () {
-        const fetchWaypoints = async () => {
-            // Replace with actual query logic to get waypoint entities in the scene
-            const waypointEntities = document.querySelectorAll("[waypoint]");
-            console.log("waypointEntities", waypointEntities);
-            const waypointList = Array.from(waypointEntities).map(entity => ({
-                id: entity.eid,
-                name: entity.className, // Replace with actual waypoint name
-            }));
-            return waypointList;
-        };
-
-        return fetchWaypoints();
+    loadWaypoints: async function () {
+        const waypointEntities = document.querySelectorAll("[waypoint]");
+        console.log("waypointEntities", waypointEntities);
+        return Array.from(waypointEntities).map(entity => ({
+            id: entity.eid,
+            name: entity.className, // Replace with actual waypoint name
+            position: entity.object3D.position,
+            quaternion: entity.object3D.quaternion,
+            rotation: entity.object3D.rotation,            
+        }));
     },
 
     addEventOnChange: function () {
         if (this.dropdown) {
-            this.dropdown.addEventListener("change", (event) => this.handleWaypointChange(event));
+            this.dropdown.addEventListener("change", this.handleWaypointChange.bind(this));
         }
     },
 
@@ -67,15 +69,15 @@ AFRAME.registerComponent("mini-map", {
         if (!linkUrl) return;
         this.playAnimation("Walking");
         const cur_url = window.location.href;
-        const orgin = cur_url.split("#")[0];
-        linkUrl = orgin + linkUrl;
-        const currnetHubId = await isHubsRoomUrl(window.location.href);
+        const origin = cur_url.split("#")[0];
+        linkUrl = origin + linkUrl;
+        const currentHubId = await isHubsRoomUrl(window.location.href);
         const exitImmersive = async () => await handleExitTo2DInterstitial(false, () => { }, true);
         let gotoHubId;
 
         if ((gotoHubId = await isHubsRoomUrl(linkUrl))) {
             const url = new URL(linkUrl);
-            if (currnetHubId === gotoHubId && url.hash) {
+            if (currentHubId === gotoHubId && url.hash) {
                 window.history.replaceState(null, "", window.location.href.split("#")[0] + url.hash);
             } else if (await isLocalHubsUrl(linkUrl)) {
                 let waypoint = url.hash ? url.hash.substring(1) : "";
@@ -88,8 +90,10 @@ AFRAME.registerComponent("mini-map", {
     },
 
     handleWaypointChange: function (event) {
-        const selectedValue = event.target.value;
-        this.changeRoom(selectedValue);
+        // const selectedValue = event.target.value;
+        // this.changeRoom(selectedValue);
+        const destination = event.target[event.target.selectedIndex].position;
+        this.navigateTo(destination);
     },
 
     setupControls: function () {
@@ -158,7 +162,6 @@ AFRAME.registerComponent("mini-map", {
         const destination = new THREE.Vector3();
         this.raycaster.ray.intersectPlane(groundPlane, destination);
         destination.z = -destination.z;
-        // Set navigation to the calculated 3D destination
         this.navigateTo(destination);
         this.startRotation = true;
     },
@@ -172,7 +175,6 @@ AFRAME.registerComponent("mini-map", {
     moveCamera: function (direction) {
         const moveStep = 1;
         const currentCameraPosition = this.miniMapCamera.position;
-        this.miniMapCamera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
 
         switch (direction) {
             case "up":
@@ -195,7 +197,6 @@ AFRAME.registerComponent("mini-map", {
     zoom: function (direction) {
         const zoomStep = 1;
         const currentCameraPosition = this.miniMapCamera.position;
-        this.miniMapCamera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
 
         switch (direction) {
             case "zoomIn":
@@ -225,8 +226,6 @@ AFRAME.registerComponent("mini-map", {
         }
     },
 
-
-
     teleportTo: function (targetWorldPosition) {
         const rig = new THREE.Vector3();
         const head = new THREE.Vector3();
@@ -245,7 +244,6 @@ AFRAME.registerComponent("mini-map", {
         const navMeshExists = NAV_ZONE in this.scene.systems.nav.pathfinder.zones;
         this.findPositionOnNavMesh(targetForRig, targetForRig, this.user.object3D.position, navMeshExists);
         this.user.object3D.matrixNeedsUpdate = true;
-
     },
 
     tick: function (time, timeDelta) {
@@ -254,53 +252,29 @@ AFRAME.registerComponent("mini-map", {
             const userPosition = this.user.object3D.position;
             const direction = new THREE.Vector3().subVectors(this.destination, userPosition).normalize();
 
-            // Project both vectors to the XZ plane
             direction.y = 0;
             const cameraForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.object3D.quaternion).normalize();
             cameraForward.y = 0;
 
-            // Calculate the angle between the two vectors
             const angle = Math.atan2(direction.x, direction.z) - Math.atan2(cameraForward.x, cameraForward.z);
+            this.camera.object3D.rotation.y += angle * 0.05;
 
-
-            // if (Math.abs(angle) < 0.01) {
-            //     this.startRotation = false;
-            // } else {
-            //     if (this.startRotation) {
-            // console.log("Angle: ", angle, "Camera rotation: ", this.camera.object3D.rotation.y);
-            // Smoothly rotate the camera to face the destination direction
-            this.camera.object3D.rotation.y += angle * 0.05; // Adjust rotation speed as needed
-            //         this.updateMiniMap();
-            //         return;
-            //     }
-            // }
-
-            // Dynamic speed increase with acceleration
-            const baseSpeed = 0.001; // Starting speed
-            const maxSpeed = 0.01;   // Maximum speed
-            const acceleration = 0.0001; // Acceleration factor
-            // Gradually increase speed up to the max speed
+            const baseSpeed = 0.001;
+            const maxSpeed = 0.01;
+            const acceleration = 0.0001;
             const distanceToDestination = userPosition.distanceTo(this.destination);
             let speed = Math.min(baseSpeed + acceleration * timeDelta, maxSpeed);
 
-            // Calculate the step vector
             const step = direction.normalize().multiplyScalar(speed * timeDelta);
-
             userPosition.add(step);
 
             if (distanceToDestination < 1.0) {
-                // userPosition.copy(this.destination);
                 this.characterController.teleportTo(this.destination);
                 this.isNavigating = false;
                 this.destination = null;
                 this.characterController.isNavigating = false;
                 this.startRotation = false;
-                const avatarRoot = document.querySelectorAll("[fullbody-animation-play]");
-                if (avatarRoot.length > 0) {
-                    avatarRoot[0].components["fullbody-animation-play"].playAnimation("Idle");
-                }
-            } else {
-                // console.log("Distance to destination: ", distanceToDestination);
+                this.playAnimation("Idle");
             }
         }
         this.updateMiniMap();
@@ -337,7 +311,6 @@ AFRAME.registerComponent("mini-map", {
 
         if (movementDirection.length() > 0.01) {
             this.updateArrowPosition(userPosition, movementDirection, scaleFactor);
-            // console.log("User position: ", userPosition);
         } else {
             this.updateArrowRotation(userPosition, scaleFactor);
         }
