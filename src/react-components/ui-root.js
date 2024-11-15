@@ -69,6 +69,8 @@ import { ReactComponent as SupportIcon } from "./icons/Support.svg";
 import { ReactComponent as ShieldIcon } from "./icons/Shield.svg";
 import { ReactComponent as DiscordIcon } from "./icons/Discord.svg";
 import { ReactComponent as VRIcon } from "./icons/VR.svg";
+import { ReactComponent as CodeBranch } from "./icons/CodeBranch.svg";
+import { ReactComponent as ReactionIcon } from "./icons/Reaction.svg";
 import { ReactComponent as LeaveIcon } from "./icons/Leave.svg";
 import { ReactComponent as EnterIcon } from "./icons/Enter.svg";
 import { ReactComponent as InviteIcon } from "./icons/Invite.svg";
@@ -106,6 +108,7 @@ import { ChatContextProvider } from "./room/contexts/ChatContext";
 import ChatToolbarButton from "./room/components/ChatToolbarButton/ChatToolbarButton";
 import SeePlansCTA from "./room/components/SeePlansCTA/SeePlansCTA";
 import { WebGLContentModalContainer } from "./room/WebGLContentModalContainer";
+import { MiniMapModalContainer } from "./room/MiniMapModalContainer";
 
 const avatarEditorDebug = qsTruthy("avatarEditorDebug");
 
@@ -214,7 +217,9 @@ class UIRoot extends Component {
     sidebarId: null,
     presenceCount: 0,
     chatPrefix: "",
-    chatAutofocus: false
+    chatAutofocus: false,
+    reacted: false,
+    enableMap: false
   };
 
   constructor(props) {
@@ -828,6 +833,37 @@ class UIRoot extends Component {
       </div>
     );
   };
+  playAnimation(animationName) {
+    const avatarRoot = document.querySelectorAll("[fullbody-animation-play]");
+    let status = true;
+    if (avatarRoot.length > 0) {
+      if (this.state.reacted) {
+        animationName = "Idle";
+      }
+      status = avatarRoot[0].components["fullbody-animation-play"].playAnimation(animationName);
+    }
+
+    if (!status) {
+      return;
+    } else {
+      this.setState({ reacted: !this.state.reacted });
+    }
+  }
+
+  closeWorldMap() {
+    this.closeDialog();
+    this.setState({ enableMap: false });
+  }
+
+  openWorldMap() {
+    if (this.state.enableMap) {
+      this.closeDialog();
+    } else {
+      this.showNonHistoriedDialog(MiniMapModalContainer, { scene: this.props.scene, json: {}, onClose: this.closeWorldMap.bind(this) });
+    }
+
+    this.setState({ enableMap: !this.state.enableMap });
+  }
 
   onEnteringCanceled = () => {
     this.props.hubChannel.sendEnteringCancelledEvent();
@@ -1690,6 +1726,26 @@ class UIRoot extends Component {
                         />
                       )
                     }
+                    {entered && (
+                      <ToolbarButton
+                        icon={<CodeBranch />}
+                        preset="accent1"
+                        label={<FormattedMessage id="toolbar.world-map-button" defaultMessage="Map" />}
+                        onClick={() => this.openWorldMap()}
+                        selected={this.state.enableMap}
+                      />
+                    )}
+
+                    {entered && (
+                      <ToolbarButton
+                        icon={<ReactionIcon />}
+                        preset="accent1"
+                        label={<FormattedMessage id="toolbar.react-01" defaultMessage="React" />}
+                        onClick={() => this.playAnimation("A0_Waving")}
+                        selected={this.state.reacted === true}
+                      />
+                    )}
+
                     {entered && isMobileVR && (
                       <ToolbarButton
                         className={styleUtils.hideLg}
@@ -1755,6 +1811,13 @@ class UIRoot extends Component {
         </ReactAudioContext.Provider>
       </MoreMenuContextProvider>
     );
+  }
+}
+
+function playAnimation(animationName) {
+  const avatarRoot = document.querySelectorAll("[fullbody-animation-play]");
+  if (avatarRoot.length > 0) {
+    avatarRoot[0].components["fullbody-animation-play"].playAnimation(animationName);
   }
 }
 

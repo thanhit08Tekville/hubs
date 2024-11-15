@@ -5,17 +5,25 @@ const NAV_ZONE = "character";
 AFRAME.registerComponent("mini-map", {
     init: function () {
         console.log("Mini-map component initialized");
+        this.enableMap = true;
         this.setupComponents();
+        if (!this.enableMap) return;
         this.setupEventListeners();
+        if (!this.enableMap) return;        
         this.initializeProperties();
     },
 
     setupComponents: function () {
         this.setupControls();
+        if (!this.enableMap) return;
         this.setupCanvas();
+        if (!this.enableMap) return;
         this.setupThreeJS();
+        if (!this.enableMap) return;
         this.setupScene();
+        if (!this.enableMap) return;
         this.setupUser();
+        if (!this.enableMap) return;
         this.setupRaycaster();
     },
 
@@ -98,6 +106,10 @@ AFRAME.registerComponent("mini-map", {
 
     setupControls: function () {
         this.arrowUp = document.getElementById("arrow_up");
+        if (!this.arrowUp) {
+            this.enableMap = false;
+            return;
+        }
         this.arrowDown = document.getElementById("arrow_down");
         this.arrowLeft = document.getElementById("arrow_left");
         this.arrowRight = document.getElementById("arrow_right");
@@ -247,6 +259,7 @@ AFRAME.registerComponent("mini-map", {
     },
 
     tick: function (time, timeDelta) {
+        if (!this.enableMap) return;
         if (this.isNavigating && this.destination) {
             this.characterController.isNavigating = true;
             const userPosition = this.user.object3D.position;
