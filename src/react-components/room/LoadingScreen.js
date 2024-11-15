@@ -4,8 +4,8 @@ import { LoadingScreenLayout } from "../layout/LoadingScreenLayout";
 import { Spinner } from "../misc/Spinner";
 import { useRandomMessageTransition } from "./hooks/useRandomMessageTransition";
 import styles from "../layout/LoadingScreenLayout.scss";
-import tekvilleHowToControlImgPc from "../../assets/images/tips.gif";
-import tekvilleHowToControlImgSp from "../../assets/images/tips.gif";
+import tekvilleHowToControlImgPc from "../../assets/images/tips3.gif";
+import tekvilleHowToControlImgSp from "../../assets/images/tips3.gif";
 export function LoadingScreen({ message, infoMessages }) {
   const infoMessage = useRandomMessageTransition(infoMessages);
   return (
