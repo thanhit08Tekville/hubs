@@ -35,7 +35,38 @@
 
 :local(.bottom) {
   position: absolute;
-  bottom: 10%;
+  bottom: 5%;
   width: 100%;
   padding: 0 48px;
+}
+
+:local(.top) {
+  position: absolute;
+  top: 200px;
+  width: 100%;
+  padding: 0 48px;
+}
+
+:local(.tekville-how-to-control) {
+  display: block;
+  margin: 8px auto 0;
+  max-width: 800px;
+  max-height: 40vh;
+  border-radius: 8px;
+}
+
+:local(.tekville-loading-message-wrap) {
+  display: flex;
+  align-items: center;
+}
+
+:local(.tekville-spinner-wrap) {
+  width: 30px;
+  height: 30px;
+  margin-right: 16px;
+}
+
+:local(.tekville-spinner-wrap svg) {
+  max-width: 100%;
+  max-height: 100%;
 }
