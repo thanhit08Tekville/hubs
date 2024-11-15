@@ -107,8 +107,8 @@ export async function changeHub(hubId, addToHistory = true, waypoint = "") {
     // that we applied to scene-owned entities before transitioning to the new room.
     // For now, just unload scene even if the room we're going to has the same scene.
     shouldUseNewLoader() ||
-    document.querySelector("#environment-scene").childNodes[0].components["gltf-model-plus"].data.src !==
-      (await getSceneUrlForHub(hub))
+    (document.querySelector("#environment-scene").childNodes[0] && document.querySelector("#environment-scene").childNodes[0].components["gltf-model-plus"].data.src !==
+      (await getSceneUrlForHub(hub)))
   ) {
     const fader = document.getElementById("viewing-camera").components["fader"];
     fader.fadeOut().then(() => {
