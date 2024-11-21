@@ -81,6 +81,7 @@ import { ObjectsSidebarContainer } from "./room/ObjectsSidebarContainer";
 import { ObjectMenuContainer } from "./room/ObjectMenuContainer";
 import { useCssBreakpoints } from "react-use-css-breakpoints";
 import { PlacePopoverContainer } from "./room/PlacePopoverContainer";
+import { AnimationReactionPopoverContainer } from "./room/AnimationReactionPopoverContainer";
 import { SharePopoverContainer } from "./room/SharePopoverContainer";
 import { AudioPopoverButtonContainer } from "./room/AudioPopoverButtonContainer";
 import { ReactionPopoverContainer } from "./room/ReactionPopoverContainer";
@@ -1691,6 +1692,10 @@ class UIRoot extends Component {
                               hubChannel={this.props.hubChannel}
                               mediaSearchStore={this.props.mediaSearchStore}
                               showNonHistoriedDialog={this.showNonHistoriedDialog}
+                            />
+                            <AnimationReactionPopoverContainer
+                              scene={this.props.scene}
+                              hubChannel={this.props.hubChannel}
                             />
                           </>
                         )}
