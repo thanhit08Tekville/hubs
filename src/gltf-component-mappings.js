@@ -135,6 +135,7 @@ import { findAncestorWithComponent } from "./utils/scene-graph";
 import { createElementEntity } from "./utils/jsx-entity";
 import { setInitialNetworkedData } from "./utils/assign-network-ids";
 import { inflatepdfviewer } from "./inflators/pdfviewer";
+import { inflateanimationcontrol } from "./inflators/animationcontrol";
 /** @jsx createElementEntity */ createElementEntity;
 
 AFRAME.GLTFModelPlus.registerComponent("media-frame", "media-frame", (el, _componentName, componentData) => {
@@ -606,3 +607,4 @@ AFRAME.GLTFModelPlus.registerComponent("reflection-probe", "reflection-probe", (
 
 AFRAME.GLTFModelPlus.registerComponent("iframe", "iframe", inflatorWrapper(inflateTFCIframe));
 AFRAME.GLTFModelPlus.registerComponent("pdfviewer", "pdfviewer", inflatorWrapper(inflatepdfviewer));
+AFRAME.GLTFModelPlus.registerComponent("animationcontrol", "animationcontrol", inflatorWrapper(inflateanimationcontrol));

@@ -515,3 +515,14 @@ export const pdfviewer = defineComponent({
 });
 pdfviewer.pdfViewerServer[$isStringType] = true;
 pdfviewer.pdfFileUrl[$isStringType] = true;
+
+export const animationControl = defineComponent({
+  animationName: Types.ui32
+});
+animationControl.animationName[$isStringType] = true;
+
+export const animationControlUI = defineComponent({
+  animationName: Types.ui32,
+  parentNode: Types.ui32
+});
+animationControlUI.animationName[$isStringType] = true;

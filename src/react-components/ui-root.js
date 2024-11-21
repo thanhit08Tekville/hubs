@@ -109,6 +109,7 @@ import ChatToolbarButton from "./room/components/ChatToolbarButton/ChatToolbarBu
 import SeePlansCTA from "./room/components/SeePlansCTA/SeePlansCTA";
 import { WebGLContentModalContainer } from "./room/WebGLContentModalContainer";
 import { MiniMapModalContainer } from "./room/MiniMapModalContainer";
+import { findAncestorWithComponent } from "../utils/scene-graph";
 
 const avatarEditorDebug = qsTruthy("avatarEditorDebug");
 
@@ -848,6 +849,10 @@ class UIRoot extends Component {
     } else {
       this.setState({ reacted: !this.state.reacted });
     }
+  };
+
+  playModelAnimation() {
+    
   }
 
   closeWorldMap() {
@@ -1743,6 +1748,15 @@ class UIRoot extends Component {
                         label={<FormattedMessage id="toolbar.react-01" defaultMessage="React" />}
                         onClick={() => this.playAnimation("A0_Waving")}
                         selected={this.state.reacted === true}
+                      />
+                    )}
+
+                    {entered && (
+                      <ToolbarButton
+                        icon={<ReactionIcon />}
+                        preset="accent3"
+                        label={<FormattedMessage id="toolbar.play-animation-01" defaultMessage="Play" />}
+                        onClick={() => this.playModelAnimation()}
                       />
                     )}
 

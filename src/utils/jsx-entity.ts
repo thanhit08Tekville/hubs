@@ -41,7 +41,8 @@ import {
   ObjectMenu,
   HoverableVisuals,
   MirrorMenu,
-  pdfviewer
+  pdfviewer,
+  animationControl,
 } from "../bit-components";
 import { inflateMediaLoader } from "../inflators/media-loader";
 import { inflateMediaFrame } from "../inflators/media-frame";
@@ -106,6 +107,8 @@ import { ComponentDataT } from "../types";
 import { HoldableParams, inflateHoldable } from "../inflators/holdable";
 import { TFCIframeParams, inflateTFCIframe } from "../inflators/iframe";
 import { pdfviewerParams, inflatepdfviewer } from "../inflators/pdfviewer";
+import { inflateanimationcontrol, animationcontrolParams } from "../inflators/animationcontrol";
+
 
 preload(
   new Promise(resolve => {
@@ -381,6 +384,7 @@ export interface JSXComponentData extends ComponentData {
   text?: TextParams;
   tfcIframe?: TFCIframeParams;
   pdfviewer?: pdfviewerParams;
+  animationcontrol?: animationcontrolParams;
 }
 
 export interface GLTFComponentData extends ComponentData {
@@ -422,6 +426,7 @@ export interface GLTFComponentData extends ComponentData {
 
   tfcIframe?: TFCIframeParams;
   pdfviewer?: pdfviewerParams;
+  animationcontrol?: animationcontrolParams;
 }
 
 declare global {
@@ -510,7 +515,8 @@ export const jsxInflators: Required<{ [K in keyof ComponentDataT]: InflatorFn }>
   objectMenuTarget: inflateObjectMenuTarget,
   plane: inflatePlane,
   tfcIframe: inflateTFCIframe,
-  pdfviewer: inflatepdfviewer
+  pdfviewer: inflatepdfviewer,
+  animationcontrol: inflateanimationcontrol
 };
 
 export const gltfInflators: Required<{ [K in keyof ComponentDataT]: InflatorFn }> = {
@@ -551,7 +557,8 @@ export const gltfInflators: Required<{ [K in keyof ComponentDataT]: InflatorFn }
   physicsShape: inflateAmmoShape,
   text: inflateGLTFText,
   tfcIframe: inflateTFCIframe,
-  pdfviewer: inflatepdfviewer
+  pdfviewer: inflatepdfviewer,
+  animationcontrol: inflateanimationcontrol
 };
 
 function jsxInflatorExists(name: string) {
