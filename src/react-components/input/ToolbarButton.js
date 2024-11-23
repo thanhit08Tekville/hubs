@@ -22,6 +22,8 @@ export const statusColors = ["recording", "unread", "enabled", "disabled"];
 export const ToolbarButton = forwardRef(
   (
     {
+      // Props for the button element
+      id, // The id of the button
       preset,
       className,
       iconContainerClassName,
@@ -42,6 +44,7 @@ export const ToolbarButton = forwardRef(
   ) => {
     return (
       <button
+        id={id || null} // The id of the button element if provided
         ref={ref}
         className={classNames(
           styles.toolbarButton,
