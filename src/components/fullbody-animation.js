@@ -11,13 +11,28 @@ export const ANIMATIONS = {
     RUNNING_BACKWARD: "RunningBackward",
     RUNNING_LEFT: "LeftStrafe",
     RUNNING_RIGHT: "RightStrafe",
+    // Custom animations for the room
+    CLAPPING: "Clapping",
+    DEFEAT: "Defeat",
+    FLYING: "Flying",
+    NO: "No",
+    WAVING: "A0_Waving",
 };
 
 AFRAME.registerComponent("fullbody-animation-change", {
     userinput: null,
+    // The current animation name that is playing
+    curAnimationName: ANIMATIONS.IDLE,
 
     init() {
         this.userinput = AFRAME.scenes[0].systems.userinput;
+        window.addEventListener(
+            "start-animation",
+            event => {
+                this.curAnimationName = event.detail.animationName;
+                console.log("Playing animation: ", this.curAnimationName);
+            }
+        );
     },
 
     tick() {
@@ -29,7 +44,8 @@ AFRAME.registerComponent("fullbody-animation-change", {
             const isRunning = boost || 1 < Math.abs(right) || 1 < Math.abs(front)
 
             if (front === 0 && right === 0) {
-                this.setCurrentAnimation(ANIMATIONS.IDLE)
+                // If the user is not moving, play the idle animation
+                this.setCurrentAnimation(this.curAnimationName)
             } else if (Math.abs(front) < Math.abs(right)) {
                 if (0 < right) {
                     this.setCurrentAnimation(isRunning ? ANIMATIONS.RUNNING_RIGHT : ANIMATIONS.WALKING_RIGHT);

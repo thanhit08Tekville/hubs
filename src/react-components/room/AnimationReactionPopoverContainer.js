@@ -8,6 +8,11 @@ export function AnimationReactionPopoverContainer({ scene, hubChannel }) {
     const [items, setItems] = useState([]);
     const [reacted, setReacted] = useState(false);
 
+    // Broadcast the animation to all users in the room to play the animation reaction
+    const broadcastAnimation = (animationName) => {
+        window.dispatchEvent(new CustomEvent("start-animation", { detail: { animationName: animationName } }));
+    };
+
     const playAnimation = (animationName) => {
         const avatarRoot = document.querySelectorAll("[fullbody-animation-play]");
         let status = true;
@@ -19,10 +24,12 @@ export function AnimationReactionPopoverContainer({ scene, hubChannel }) {
             console.log("Playing animation: ", scene);
         }
 
-        if (!status) {
+        if (!status) {            
             return;
         } else {
             setReacted(!reacted);
+            // Broadcast the animation to all users in the room to play the animation reaction
+            broadcastAnimation(animationName);
         }
     };
 
@@ -48,12 +55,23 @@ export function AnimationReactionPopoverContainer({ scene, hubChannel }) {
             setItems(nextItems);
         }
 
+        // Create a function to handle the animation message
+        // const handleAnimationMessage = (message) => {
+        //     if (message.type === "animation") {
+        //         playAnimation(message.animationName);
+        //     }
+        // };
+
         hubChannel.addEventListener("permissions_updated", updateItems);
+        // Listen for messages from the hub
+        // hubChannel.addEventListener("message", handleAnimationMessage);
 
         updateItems();
 
         return () => {
             hubChannel.removeEventListener("permissions_updated", updateItems);
+            // Remove the event listener when the component is unmounted
+            // hubChannel.removeEventListener("message", handleAnimationMessage);
         };
     }, [hubChannel, scene, reacted]);
 

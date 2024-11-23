@@ -849,6 +849,7 @@ class UIRoot extends Component {
       return;
     } else {
       this.setState({ reacted: !this.state.reacted });
+      window.dispatchEvent(new CustomEvent("start-animation", { detail: { animationName: animationName } }));
     }
   };
 
@@ -1748,6 +1749,7 @@ class UIRoot extends Component {
 
                     {entered && (
                       <ToolbarButton
+                        id = "toolbar.react-button"
                         icon={<ReactionIcon />}
                         preset="accent1"
                         label={<FormattedMessage id="toolbar.react-01" defaultMessage="React" />}
