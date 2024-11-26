@@ -162,9 +162,10 @@ const snapToFrame = (() => {
 
     // Apply scale settings
     newScale.copy(frameScale);
+    const scaleAspectFit = scaleForAspectFit(frameBounds, contentBounds);
     if (MediaFrame.flags[frameEid] & MEDIA_FRAME_FLAGS.SCALE_TO_BOUNDS) {
       // Adjust content scale to fit inside the frame
-      newScale.multiplyScalar(scaleForAspectFit(frameBounds, contentBounds));
+      newScale.multiplyScalar(scaleAspectFit);
     } else {
       // Preserve the current object scale
       newScale.setFromMatrixScale(targetObj.matrixWorld);
@@ -184,7 +185,8 @@ const snapToFrame = (() => {
       }
     }
     // Transform content to match frame specification
-    setMatrixWorld(targetObj, m4.compose(framePos, frameQuat, newScale));
+    setMatrixWorld(targetObj, m4.compose(framePos, frameQuat, new Vector3(scaleAspectFit, scaleAspectFit, scaleAspectFit)));
+    // setMatrixWorld(targetObj, m4.compose(framePos, frameQuat, new Vector3(frameScaleInit, frameScaleInit, frameScaleInit)));
   };
 })();
 
