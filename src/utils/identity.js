@@ -1,5 +1,6 @@
 import { fetchReticulumAuthenticated } from "./phoenix-utils";
-import defaultAvatar from "../assets/models/DefaultAvatar.glb";
+import defaultAvatar from "../assets/models/boy.glb";
+const { faker } = require('@faker-js/faker');
 
 const names = [
   "Baers-Pochard",
@@ -88,13 +89,29 @@ const names = [
   "Wood-Duck",
   "Yellow-Billed"
 ];
+const avatarList = [
+  'vqnkHx2',
+  'GkVC3Zq'
+];
 
 function chooseRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+export function randomAvatar() {
+  return chooseRandom(avatarList);
+}
+
 export function generateRandomName() {
   return `${chooseRandom(names)}-${Math.floor(10000 + Math.random() * 10000)}`;
+}
+
+export function generateRandomUsername() {
+  const firstName = faker.name.firstName();
+  const lastName = faker.name.lastName();
+  const fullName = `${firstName} ${lastName}`;
+  const nickname = faker.internet.username(firstName, lastName);
+  return { fullName, nickname };
 }
 
 export async function fetchRandomDefaultAvatarId() {
