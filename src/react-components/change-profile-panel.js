@@ -6,7 +6,7 @@ import { AvatarSettingsSidebar } from "./room/AvatarSettingsSidebar";
 import { AvatarSetupModal } from "./room/AvatarSetupModal";
 import AvatarPreview from "./avatar-preview";
 
-export default class ProfileEntryPanel extends Component {
+export default class ChangeProfilePanel extends Component {
   static propTypes = {
     containerType: PropTypes.oneOf(["sidebar", "modal"]),
     displayNameOverride: PropTypes.string,
@@ -104,16 +104,6 @@ export default class ProfileEntryPanel extends Component {
     if (prevState.avatarId !== this.state.avatarId) {
       this.refetchAvatar();
     }
-    // Thanh add
-    // Skip the avatar setup if the user is using the fastEntry mode
-    if (prevState.avatar !== this.state.avatar) {
-      const funcs = new URLSearchParams(location.search).get("funcs")?.split(",");      
-      const isfastEntry = (funcs?.some(str => str === "bot") || funcs?.some(str => str === "fastEntry"));
-      if (isfastEntry) {
-        this.saveStateAndFinish();
-      }
-    }
-    //
   }
 
   componentWillUnmount() {

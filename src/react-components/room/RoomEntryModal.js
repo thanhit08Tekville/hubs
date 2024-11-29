@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import PropTypes from "prop-types";
 import classNames from "classnames";
 import { Modal } from "../modal/Modal";
@@ -28,6 +28,18 @@ export function RoomEntryModal({
   ...rest
 }) {
   const breakpoint = useCssBreakpoints();
+  useEffect(() => {
+    const funcs = new URLSearchParams(location.search).get("funcs")?.split(",");
+    const isfastEntry = (funcs?.some(str => str === "bot") || funcs?.some(str => str === "fastEntry"));
+    const isGhost = funcs?.some(str => str === "ghost");
+
+    if (isGhost) {
+      onSpectate();
+    } else if (isfastEntry) {
+      showJoinRoom ? onJoinRoom() : onSpectate();
+    }
+  }
+    , []);
   return (
     <Modal className={classNames(styles.roomEntryModal, className)} disableFullscreen {...rest}>
       <Column center className={styles.content}>

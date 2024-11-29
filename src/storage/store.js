@@ -11,7 +11,7 @@ const STORE_STATE_CACHE_KEY = Symbol();
 const OAUTH_FLOW_CREDENTIALS_KEY = "ret-oauth-flow-account-credentials";
 const validator = new Validator();
 import { EventTarget } from "event-target-shim";
-import { fetchRandomDefaultAvatarId, generateRandomName } from "../utils/identity.js";
+import { fetchRandomDefaultAvatarId, generateRandomName, generateRandomUsername, randomAvatar } from "../utils/identity.js";
 import { NO_DEVICE_ID } from "../utils/media-devices-utils.js";
 import { AAModes } from "../constants";
 
@@ -312,6 +312,14 @@ export default class Store extends EventTarget {
   };
 
   initProfile = async () => {
+    const funcs = new URLSearchParams(location.search).get("funcs")?.split(",");
+    const isfastEntry = (funcs?.some(str => str === "bot") || funcs?.some(str => str === "fastEntry"));
+    let avatarId = '';
+    if (isfastEntry) {
+      avatarId = randomAvatar();
+    } else {
+      avatarId = await fetchRandomDefaultAvatarId();
+    }
     // const qs = new URLSearchParams(location.search);
     // let displayName = '';
     // let avatarUrl = '';
@@ -339,7 +347,8 @@ export default class Store extends EventTarget {
       await this.resetToRandomDefaultAvatar();
     } else {
       this.update({
-        profile: { avatarId: await fetchRandomDefaultAvatarId(), ...(this.state.profile || {}) }
+        // profile: { avatarId: await fetchRandomDefaultAvatarId(), ...(this.state.profile || {}) }
+        profile: { avatarId: avatarId, ...(this.state.profile || {}) }
       });
     }
 
