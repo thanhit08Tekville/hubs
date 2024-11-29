@@ -4,6 +4,8 @@ import classNames from "classnames";
 import copy from "copy-to-clipboard";
 import { FormattedMessage } from "react-intl";
 import screenfull from "screenfull";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { getAbsoluteHref } from "../utils/media-url-utils";
 
 import configs from "../utils/configs";
 import { isLockedDownDemoRoom } from "../utils/hub-utils";
@@ -75,6 +77,8 @@ import { ReactComponent as LeaveIcon } from "./icons/Leave.svg";
 import { ReactComponent as EnterIcon } from "./icons/Enter.svg";
 import { ReactComponent as InviteIcon } from "./icons/Invite.svg";
 import hubsLogo from "../assets/images/hubs-logo.png";
+import axe from "../assets/models/axe2.glb";
+
 import { PeopleSidebarContainer, userFromPresence } from "./room/PeopleSidebarContainer";
 import { ObjectListProvider } from "./room/hooks/useObjectList";
 import { ObjectsSidebarContainer } from "./room/ObjectsSidebarContainer";
@@ -129,6 +133,8 @@ async function grantedMicLabels() {
 const isMobile = AFRAME.utils.device.isMobile();
 const isMobileVR = AFRAME.utils.device.isMobileVR();
 const AUTO_EXIT_TIMER_SECONDS = 10;
+const loader = new GLTFLoader();
+let character, weapon, weaponPicked = false;
 
 class UIRoot extends Component {
   willCompileAndUploadMaterials = false;
@@ -257,8 +263,8 @@ class UIRoot extends Component {
         window.setTimeout(() => {
           if (!this.props.isBotMode) {
             try {
-              this.props.scene.renderer.compile(this.props.scene.object3D, this.props.scene.camera);
               this.props.scene.object3D.traverse(obj => {
+                this.props.scene.renderer.compile(this.props.scene.object3D, this.props.scene.camera);
                 if (!obj.material) {
                   return;
                 }
@@ -369,6 +375,17 @@ class UIRoot extends Component {
     });
 
     const scene = this.props.scene;
+
+    const weaponEntity = document.createElement("a-entity");
+    weaponEntity.setAttribute("id", "weapon"); // Add an ID for querying
+
+    loader.load(getAbsoluteHref(location.href, axe), (gltf) => {
+      weapon = gltf.scene;
+      weapon.position.set(0, 0, 0); // Place weapon on the ground
+      weaponEntity.object3D.add(weapon);
+      // AFRAME.scenes[0].object3D.add(weapon);
+      document.querySelector("a-scene").appendChild(weaponEntity);
+    });
 
     const unsubscribe = this.props.history.listen((location, action) => {
       const state = location.state;
@@ -853,8 +870,41 @@ class UIRoot extends Component {
     }
   };
 
-  playModelAnimation() {
-    
+  pickWeapon() {
+    if (!weaponPicked) {
+      const avatarRoot = document.querySelectorAll("[ik-controller]")[0].object3D;
+      const hand = avatarRoot.getObjectByName('LeftHand');
+
+      if (hand) {
+        // Parent the weapon to the hand
+        const weaponEntity = document.querySelector("#weapon");
+        weapon.position.set(0, 0, 0); // Adjust based on hand model
+        weapon.rotation.set(0, 0, 0);
+        weapon.scale.set(0.5, 0.5, 0.5);
+        hand.el.object3D.add(weaponEntity.object3D);
+
+        weaponPicked = true; // Flag to indicate the weapon is picked up
+      }
+    } else {
+      this.dropWeapon();
+    }
+  }
+
+  dropWeapon() {
+    const avatarRoot = document.querySelectorAll("[ik-controller]")[0].object3D;
+    const hand = avatarRoot.getObjectByName('LeftHand');
+
+    if (hand) {
+      // Parent the weapon to the hand
+      const weaponEntity = document.querySelector("#weapon");
+      // Remove the weapon from the hand
+      hand.el.object3D.remove(weaponEntity);
+      document.querySelector("a-scene").appendChild(weaponEntity);
+      weapon.position.set(0, 0, 0); // Adjust based on hand model
+      weapon.rotation.set(0, 0, 0);
+      weapon.scale.set(1, 1, 1);
+      weaponPicked = false;
+    }
   }
 
   closeWorldMap() {
@@ -1749,7 +1799,7 @@ class UIRoot extends Component {
 
                     {entered && (
                       <ToolbarButton
-                        id = "toolbar.react-button"
+                        id="toolbar.react-button"
                         icon={<ReactionIcon />}
                         preset="accent1"
                         label={<FormattedMessage id="toolbar.react-01" defaultMessage="React" />}
@@ -1762,8 +1812,8 @@ class UIRoot extends Component {
                       <ToolbarButton
                         icon={<ReactionIcon />}
                         preset="accent3"
-                        label={<FormattedMessage id="toolbar.play-animation-01" defaultMessage="Play" />}
-                        onClick={() => this.playModelAnimation()}
+                        label={<FormattedMessage id="toolbar.play-animation-01" defaultMessage="Pick" />}
+                        onClick={() => this.pickWeapon()}
                       />
                     )}
 
