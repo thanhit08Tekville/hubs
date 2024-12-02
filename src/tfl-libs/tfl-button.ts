@@ -9,10 +9,11 @@ interface CreateUIButtonOptions {
   text: string;
   fontSize: number;
   font: string;
+  buttonStyle: string;
 }
 
 export function createUIButton(options: CreateUIButtonOptions): THREE.Mesh {
-  const { width, height, backgroundColor, textColor, text, fontSize, font } = options;
+  const { width, height, backgroundColor, textColor, text, fontSize, font, buttonStyle } = options;
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d')!;
 
@@ -52,11 +53,26 @@ export function createUIButton(options: CreateUIButtonOptions): THREE.Mesh {
   } else {
     canvas.width = 1028 * width; // Texture width (power of 2)
     canvas.height = 1028 * height; // Texture height (power of 2)
-    
+
     context.fillStyle = backgroundColor;
     context.fillRect(0, 0, canvas.width, canvas.height);
+
+    if (buttonStyle === "circle") {
+      context.beginPath();
+      context.arc(
+        canvas.width / 2,
+        canvas.height / 2,
+        canvas.width / 2 - 20,
+        0,
+        Math.PI * 2
+      );
+      context.fillStyle = "#ffffff";
+      context.fill();
+      context.closePath();
+    }
+
     // Draw text
-    context.font = `${fontSize * 10}px ${font}`;
+    context.font = `${fontSize * 10}px ${font} italic`;
     context.textAlign = 'center';
     context.textBaseline = 'middle';
     context.fillStyle = textColor;
@@ -73,14 +89,18 @@ export function createUIButton(options: CreateUIButtonOptions): THREE.Mesh {
   } else if (text !== "screen") {
     transparent = true;
   }
-  
+
   // Create material with texture
   const materialParams = { map: texture, side: THREE.DoubleSide, transparent: transparent };
   const material = new THREE.MeshBasicMaterial(materialParams);
 
   // Create geometry
-  const geometry = new THREE.PlaneGeometry(width, height);
-
-  // Create mesh
-  return new THREE.Mesh(geometry, material);
+  if (buttonStyle === "circle") {
+    const geometry = new THREE.CircleGeometry(width / 2, 64);
+    return new THREE.Mesh(geometry, material);
+  } else {
+    const geometry = new THREE.PlaneGeometry(width, height);
+    // Create mesh
+    return new THREE.Mesh(geometry, material);
+  }
 }

@@ -9,6 +9,15 @@ import { addObject3DComponent } from "../utils/jsx-entity";
 import { createUIButton } from "../tfl-libs/tfl-button";
 import { creatorRoundedRectangle } from "../tfl-libs/tfl-panel";
 
+let btn_width = 0.25;
+let btn_height = 0.25;
+let text_color = "#000000";
+let bg_color = "#0E89F1";
+let font_size = 16;
+let text = "i";
+let font = "Arial";
+let button_style = "circle";
+
 const informationQuery = defineQuery([information]);
 const informationEnterQuery = enterQuery(informationQuery);
 const informationExitQuery = exitQuery(informationQuery);
@@ -29,8 +38,6 @@ export function informationSystem(world: HubsWorld) {
         return;
     }
 
-
-
     const entered = informationEnterQuery(world);
 
     for (let i = 0; i < entered.length; i++) {
@@ -49,17 +56,7 @@ export function informationSystem(world: HubsWorld) {
             informationObject.getWorldQuaternion(informationRotation);
             const informationScale = new THREE.Vector3();
             informationObject.getWorldScale(informationScale);
-
             informationObject.visible = true;
-
-            let btn_width = 1;
-            let btn_height = 1;
-            let text_color = "#000000";
-            let bg_color = "#ffffff";
-            let font_size = 14;
-            let text = "Info";
-            let font = "Arial";
-
             const informationButtonEid = addEntity(world);
             const informationButton = createUIButton({
                 width: btn_width,
@@ -69,6 +66,7 @@ export function informationSystem(world: HubsWorld) {
                 text: text,
                 fontSize: font_size,
                 font: font,
+                buttonStyle: button_style
             });
 
             informationButton.position.copy(informationPosition);
@@ -124,7 +122,7 @@ export function informationSystem(world: HubsWorld) {
             informationObject.getWorldQuaternion(informationRotation);
             const informationScale = new THREE.Vector3();
             informationObject.getWorldScale(informationScale);
-            
+
 
             const informationURL = APP.getString(informationUI.informationURL[networkedEid]);
             const informationTitle = APP.getString(informationUI.informationTitle[networkedEid]);
@@ -146,13 +144,13 @@ export function informationSystem(world: HubsWorld) {
                     autoHeight: true
                 });
                 informationPanel = informationPanelInfo[0];
-                const roundedRectangleBorderInfo:any = informationPanelInfo[1];                
+                const roundedRectangleBorderInfo: any = informationPanelInfo[1];
                 const informationPanelWidth = roundedRectangleBorderInfo["width"];
                 const informationPanelHeight = roundedRectangleBorderInfo["height"];
 
                 informationPanel.position.copy(informationPosition);
                 informationPanel.position.x += informationPanelWidth / 2;
-                informationPanel.position.x += 0.5 * informationScale.x;
+                informationPanel.position.x += btn_width / 2 * informationScale.x;
                 informationPanel.position.y += informationPanelHeight / 2;
                 informationPanel.quaternion.copy(informationRotation);
                 world.scene.add(informationPanel);
