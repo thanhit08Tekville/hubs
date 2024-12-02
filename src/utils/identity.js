@@ -115,7 +115,7 @@ export function generateRandomUsername() {
 }
 
 export async function fetchRandomDefaultAvatarId() {
-  const defaultAvatarEndpoint = "/api/v1/media/search?filter=default&source=avatar_listings";
+  const defaultAvatarEndpoint = "/api/v1/media/search?filter=featured&source=avatar_listings";
   const defaultAvatars = (await fetchReticulumAuthenticated(defaultAvatarEndpoint)).entries || [];
   if (defaultAvatars.length === 0) {
     // If reticulum doesn't return any default avatars, just default to the duck model. This should only happen

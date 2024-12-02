@@ -64,9 +64,9 @@ export const SCHEMA = {
       type: "object",
       additionalProperties: false,
       properties: {
-        displayName: { type: "string", pattern: "^[A-Za-z0-9_~\\s\\-\\uAC00-\\uD7A3]{3,32}$"  },
+        displayName: { type: "string", pattern: "^[A-Za-z0-9_~\\s\\-\\uAC00-\\uD7A3]{3,32}$" },
         avatarId: { type: "string" },
-        pronouns: { type: "string", pattern: "^([a-zA-Z\\uAC00-\\uD7A3]{1,32}\\/){0,4}[a-zA-Z\\uAC00-\\uD7A3]{1,32}$"  },
+        pronouns: { type: "string", pattern: "^([a-zA-Z\\uAC00-\\uD7A3]{1,32}\\/){0,4}[a-zA-Z\\uAC00-\\uD7A3]{1,32}$" },
         // personalAvatarId is obsolete, but we need it here for backwards compatibility.
         personalAvatarId: { type: "string" }
       }
@@ -312,14 +312,14 @@ export default class Store extends EventTarget {
   };
 
   initProfile = async () => {
-    const funcs = new URLSearchParams(location.search).get("funcs")?.split(",");
-    const isfastEntry = (funcs?.some(str => str === "bot") || funcs?.some(str => str === "fastEntry"));
-    let avatarId = '';
-    if (isfastEntry) {
-      avatarId = randomAvatar();
-    } else {
-      avatarId = await fetchRandomDefaultAvatarId();
-    }
+    // const funcs = new URLSearchParams(location.search).get("funcs")?.split(",");
+    // const isfastEntry = (funcs?.some(str => str === "bot") || funcs?.some(str => str === "fastEntry"));
+    // let avatarId = '';
+    // if (isfastEntry) {
+    //   avatarId = randomAvatar();
+    // } else {
+    // avatarId = await fetchRandomDefaultAvatarId();
+    // }
     // const qs = new URLSearchParams(location.search);
     // let displayName = '';
     // let avatarUrl = '';
@@ -347,8 +347,8 @@ export default class Store extends EventTarget {
       await this.resetToRandomDefaultAvatar();
     } else {
       this.update({
-        // profile: { avatarId: await fetchRandomDefaultAvatarId(), ...(this.state.profile || {}) }
-        profile: { avatarId: avatarId, ...(this.state.profile || {}) }
+        profile: { avatarId: await fetchRandomDefaultAvatarId(), ...(this.state.profile || {}) }
+        // profile: { avatarId: avatarId, ...(this.state.profile || {}) }
       });
     }
 
