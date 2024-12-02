@@ -526,3 +526,25 @@ export const animationControlUI = defineComponent({
   parentNode: Types.ui32
 });
 animationControlUI.animationName[$isStringType] = true;
+
+export const information = defineComponent({
+  informationURL: Types.ui32,
+  informationTitle: Types.ui32,
+  informationText: Types.ui32,
+  informationImage: Types.ui32,
+});
+information.informationURL[$isStringType] = true;
+information.informationTitle[$isStringType] = true;
+information.informationText[$isStringType] = true;
+information.informationImage[$isStringType] = true;
+
+export const informationUI = defineComponent({
+  informationURL: Types.ui32,
+  informationTitle: Types.ui32,
+  informationText: Types.ui32,
+  informationImage: Types.ui32,
+});
+informationUI.informationURL[$isStringType] = true;
+informationUI.informationTitle[$isStringType] = true;
+informationUI.informationText[$isStringType] = true;
+informationUI.informationImage[$isStringType] = true;
