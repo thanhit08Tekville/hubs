@@ -11,7 +11,7 @@ import { creatorRoundedRectangle } from "../tfl-libs/tfl-panel";
 
 let btn_width = 1;
 let btn_height = 1;
-let text_color = "#000000";
+let text_color = "#0E89F1";
 let bg_color = "#0E89F1";
 let font_size = 80;
 let text = "i";

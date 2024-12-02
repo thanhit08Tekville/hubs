@@ -62,7 +62,7 @@ export function createUIButton(options: CreateUIButtonOptions): THREE.Mesh {
       context.arc(
         canvas.width / 2,
         canvas.height / 2,
-        canvas.width / 2 - 20,
+        canvas.width / 2 - 40,
         0,
         Math.PI * 2
       );
