@@ -9,11 +9,11 @@ import { addObject3DComponent } from "../utils/jsx-entity";
 import { createUIButton } from "../tfl-libs/tfl-button";
 import { creatorRoundedRectangle } from "../tfl-libs/tfl-panel";
 
-let btn_width = 0.25;
-let btn_height = 0.25;
+let btn_width = 1;
+let btn_height = 1;
 let text_color = "#000000";
 let bg_color = "#0E89F1";
-let font_size = 16;
+let font_size = 80;
 let text = "i";
 let font = "Arial";
 let button_style = "circle";
@@ -58,6 +58,7 @@ export function informationSystem(world: HubsWorld) {
             informationObject.getWorldScale(informationScale);
             informationObject.visible = true;
             const informationButtonEid = addEntity(world);
+            text = informationTitle ? informationTitle : text;
             const informationButton = createUIButton({
                 width: btn_width,
                 height: btn_height,
@@ -110,25 +111,25 @@ export function informationSystem(world: HubsWorld) {
 
     const entitiesUI = informationUIQuery(world);
     for (let i = 0; i < entitiesUI.length; i++) {
-        const networkedEid = anyEntityWith(world, informationUI)!;
+        const networkedEid = entitiesUI[i];
         if (networkedEid) {
-            const informationObject = world.eid2obj.get(networkedEid);
-            if (!informationObject) {
-                return;
-            }
-            const informationPosition = new THREE.Vector3();
-            informationObject.getWorldPosition(informationPosition);
-            const informationRotation = new THREE.Quaternion();
-            informationObject.getWorldQuaternion(informationRotation);
-            const informationScale = new THREE.Vector3();
-            informationObject.getWorldScale(informationScale);
 
-
-            const informationURL = APP.getString(informationUI.informationURL[networkedEid]);
-            const informationTitle = APP.getString(informationUI.informationTitle[networkedEid]);
-            const informationText = APP.getString(informationUI.informationText[networkedEid]);
-            const informationImage = APP.getString(informationUI.informationImage[networkedEid]);
             if (clicked(world, networkedEid)) {
+                const informationObject = world.eid2obj.get(networkedEid);
+                if (!informationObject) {
+                    return;
+                }
+                const informationPosition = new THREE.Vector3();
+                informationObject.getWorldPosition(informationPosition);
+                const informationRotation = new THREE.Quaternion();
+                informationObject.getWorldQuaternion(informationRotation);
+                const informationScale = new THREE.Vector3();
+                informationObject.getWorldScale(informationScale);
+
+                const informationURL = APP.getString(informationUI.informationURL[networkedEid]);
+                const informationTitle = APP.getString(informationUI.informationTitle[networkedEid]);
+                const informationText = APP.getString(informationUI.informationText[networkedEid]);
+                const informationImage = APP.getString(informationUI.informationImage[networkedEid]);
                 console.log('clicked', { networkedEid, informationURL, informationTitle, informationText, informationImage });
                 if (informationPanel) {
                     world.scene.remove(informationPanel);
@@ -150,8 +151,8 @@ export function informationSystem(world: HubsWorld) {
 
                 informationPanel.position.copy(informationPosition);
                 informationPanel.position.x += informationPanelWidth / 2;
-                informationPanel.position.x += btn_width / 2 * informationScale.x;
-                informationPanel.position.y += informationPanelHeight / 2;
+                informationPanel.position.x += (btn_width * informationScale.x) / 2 + 0.1;
+                informationPanel.position.y -= informationPanelHeight / 2;
                 informationPanel.quaternion.copy(informationRotation);
                 world.scene.add(informationPanel);
             }
