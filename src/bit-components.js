@@ -95,6 +95,7 @@ export const DirectionalLight = defineComponent();
 export const HemisphereLightTag = defineComponent();
 export const PointLightTag = defineComponent();
 export const SpotLightTag = defineComponent();
+export const InteractiveSpotLightTag = defineComponent();
 export const CursorRaycastable = defineComponent();
 export const RemoteHoverTarget = defineComponent();
 export const NotRemoteHoverTarget = defineComponent();

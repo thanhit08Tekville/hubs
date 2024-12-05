@@ -19,6 +19,7 @@ import "./quack";
 import "./scene-preview-camera";
 import "./skybox";
 import "./spot-light";
+import "./interactive-spot-light";
 import "./floaty-object";
 import "./super-spawner";
 import "./water";

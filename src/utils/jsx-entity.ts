@@ -78,6 +78,7 @@ import { AmbientLightParams, inflateAmbientLight } from "../inflators/ambient-li
 import { HemisphereLightParams, inflateHemisphereLight } from "../inflators/hemisphere-light";
 import { PointLightParams, inflatePointLight } from "../inflators/point-light";
 import { SpotLightParams, inflateSpotLight } from "../inflators/spot-light";
+import { InteractiveSpotLightParams, inflateInteractiveSpotLight } from "../inflators/interactive-spot-light";
 import { inflateSkybox, SkyboxParams } from "../inflators/skybox";
 import { inflateSpawner, SpawnerParams } from "../inflators/spawner";
 import { inflateVideoTextureTarget, VideoTextureTargetParams } from "../inflators/video-texture-target";
@@ -262,6 +263,7 @@ export interface ComponentData {
   directionalLight?: DirectionalLightParams;
   hemisphereLight?: HemisphereLightParams;
   pointLight?: PointLightParams;
+  interactiveSpotLight?: InteractiveSpotLightParams;
   spotLight?: SpotLightParams;
   billboard?: { onlyY: boolean };
   mirror?: MirrorParams;
@@ -457,6 +459,7 @@ export const commonInflators: Required<{ [K in keyof ComponentDataT]: InflatorFn
   hemisphereLight: inflateHemisphereLight,
   pointLight: inflatePointLight,
   spotLight: inflateSpotLight,
+  interactiveSpotLight: inflateInteractiveSpotLight,
   mirror: inflateMirror,
   audioZone: inflateAudioZone,
   audioParams: inflateAudioParams,

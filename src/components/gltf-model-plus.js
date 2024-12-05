@@ -377,7 +377,7 @@ function runMigration(version, json) {
           continue;
         }
 
-        const light = components["spot-light"] || components["point-light"];
+        const light = components["spot-light"] || components["point-light"] || components["interactive-spot-light"];
 
         if (light && light.range === 0) {
           light.decay = 0;
@@ -411,6 +411,7 @@ const OBJECT3D_EXT = new Set([
   "simple-water",
   "skybox",
   "spot-light",
+  "interactive-spot-light",
   "text",
   "video",
   "waypoint"
