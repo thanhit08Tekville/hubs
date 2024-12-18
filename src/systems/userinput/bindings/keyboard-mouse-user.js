@@ -355,26 +355,26 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       },
       xform: xforms.rising
     },
-    {
-      src: {
-        value: paths.device.mouse.buttonRight
-      },
-      dest: {
-        value: paths.actions.startGazeTeleport
-      },
-      xform: xforms.rising,
-      priority: 100
-    },
-    {
-      src: {
-        value: paths.device.mouse.buttonRight
-      },
-      dest: {
-        value: paths.actions.stopGazeTeleport
-      },
-      xform: xforms.falling,
-      priority: 100
-    },
+    // {
+    //   src: {
+    //     value: paths.device.mouse.buttonRight
+    //   },
+    //   dest: {
+    //     value: paths.actions.startGazeTeleport
+    //   },
+    //   xform: xforms.rising,
+    //   priority: 100
+    // },
+    // {
+    //   src: {
+    //     value: paths.device.mouse.buttonRight
+    //   },
+    //   dest: {
+    //     value: paths.actions.stopGazeTeleport
+    //   },
+    //   xform: xforms.falling,
+    //   priority: 100
+    // },
     {
       src: { value: paths.device.keyboard.key("o") },
       dest: { value: paths.actions.nextCameraMode },
