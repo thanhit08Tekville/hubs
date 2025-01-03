@@ -95,4 +95,5 @@ links.remixing = { category = "links", type = "string", name = "Remixing Info", 
 links.model_collection = { category = "links", type = "string", name = "Model Collection", description = "Link to a collection of recommended models."}
 
 login_subject = { category = "auth", type="string", name="Magic Link Email Subject", description="Customize the email subject line for users logging in" }
+admin_email = { category = "auth", type="string", name="Admin Email", description="Customize the email for sending auth email" }
 auth.login_body = { category = "auth", type="longstring", name="Magic Link Email Body", description="Customize message. Add '{{ link }}' to insert the magic link, otherwise it will be appended at the end." }
