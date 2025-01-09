@@ -80,6 +80,12 @@ function handleActionsAfterClick(
         switch (action.value) {
             case 1: // Hide
                 console.log("Action: Hide");
+                const currentButton = world.eid2obj.get(entity);
+                if (currentButton) {
+                    currentButton.visible = false;
+                } else {
+                    console.error(`Button with entity ID ${entity} is undefined.`);
+                }
                 break;
 
             case 2: // Animation
@@ -145,11 +151,44 @@ export function ImageButtonSystem(world: HubsWorld) {
             logImageButtonData('clicked', entity, { href: data.href });
             if (data.triggerType) {
                 handleTriggerType(data.triggerType, entity);
+                if (data.triggerType === "scenario") {
+                    console.log(`Scenario button clicked: Entity ${entity}, Value: ${data.triggerValue}`);
+
+                    // Find the button with `triggerValue + 1`
+                    const nextTriggerValue = parseInt(data.triggerValue || '0', 10) + 1;
+                    const nextScenarioEntity = Array.from(scenarioButtons.entries())
+                        .find(([_, value]) => value === nextTriggerValue)?.[0];
+
+                    if (nextScenarioEntity) {
+                        console.log(`Enabling scenario button: Entity ${nextScenarioEntity}, Value: ${nextTriggerValue}`);
+                        // Implement enabling logic for the button here
+                        enableScenarioButton(world, nextScenarioEntity);
+                    } else {
+                        console.warn(`No button found with triggerValue: ${nextTriggerValue}`);
+                    }
+                }
             }
             if (data.actionsAfterClick) {
                 console.log('actionsAfterClick', data.actionsAfterClick);
                 handleActionsAfterClick(data.actionsAfterClick, data.actionsData, entity, world);
             }
         }
+    }
+}
+
+/**
+ * Enable the scenario button.
+ * @param {HubsWorld} world - The current world instance.
+ * @param {number} entity - The entity ID of the button to enable.
+ */
+function enableScenarioButton(world: HubsWorld, entity: number) {
+    // Implement the enabling logic
+    // Example: Mark the button as enabled or visible
+    console.log(`Scenario button ${entity} is now enabled.`);
+    const button = world.eid2obj.get(entity);
+    if (button) {
+        button.visible = true;
+    } else {
+        console.error(`Button with entity ID ${entity} is undefined.`);
     }
 }
