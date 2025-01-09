@@ -9,6 +9,9 @@ const ImageButtonQuery = defineQuery([imageButton]);
 const ImageButtonEnterQuery = enterQuery(ImageButtonQuery);
 const ImageButtonExitQuery = exitQuery(ImageButtonQuery);
 
+const scenarioButtons: Map<number, number> = new Map();
+let currentAudio: HTMLAudioElement | null = null;
+
 function clicked(world: HubsWorld, entity: number): boolean {
     return hasComponent(world, Interacted, entity);
 }
@@ -56,7 +59,7 @@ function handleTriggerType(triggerType: string, entity: number) {
 function handleActionsAfterClick(
     actionsAfterClick: any,
     actionsData: any,
-    entity: number, 
+    entity: number,
     world: HubsWorld
 ) {
     // Ensure actionsAfterClick is an array
@@ -109,7 +112,39 @@ function handleActionsAfterClick(
                     return;
                 }
 
-                // TODO: Implement audio logic
+                try {
+                    // Stop the currently playing audio (if any)
+                    if (currentAudio) {
+                        console.log("Stopping currently playing audio.");
+                        currentAudio.pause();
+                        currentAudio.currentTime = 0; // Reset to the beginning
+                    }
+
+                    // Create a new audio instance
+                    const audioElement = new Audio(audio);
+
+                    // Optionally, configure audio properties
+                    audioElement.volume = 1.0; // Full volume
+                    audioElement.loop = false; // Set loop if needed
+
+                    // Assign the new audio to the currentAudio reference
+                    currentAudio = audioElement;
+
+                    // Play the new audio
+                    audioElement.play()
+                        .then(() => console.log("Audio is playing:", audio))
+                        .catch(error => console.error("Failed to play audio:", error));
+
+                    // Listen for the 'ended' event to clear the reference when the audio finishes
+                    audioElement.addEventListener("ended", () => {
+                        console.log("Audio playback finished.");
+                        if (currentAudio === audioElement) {
+                            currentAudio = null; // Clear the reference
+                        }
+                    });
+                } catch (error) {
+                    console.error("Error playing audio:", error);
+                }
                 break;
 
             default:
@@ -117,7 +152,7 @@ function handleActionsAfterClick(
         }
     });
 }
-const scenarioButtons: Map<number, number> = new Map();
+
 export function ImageButtonSystem(world: HubsWorld) {
     // Store all scenario buttons
     const myButtonEid = anyEntityWith(world, imageButton);
