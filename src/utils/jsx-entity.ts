@@ -110,6 +110,7 @@ import { TFCIframeParams, inflateTFCIframe } from "../inflators/iframe";
 import { pdfviewerParams, inflatepdfviewer } from "../inflators/pdfviewer";
 import { inflateanimationcontrol, animationcontrolParams } from "../inflators/animationcontrol";
 import { inflateInformation, informationParams } from "../inflators/information";
+import { inflateImageButton, ImageButtonParams } from "../inflators/image-button";
 
 
 preload(
@@ -389,6 +390,7 @@ export interface JSXComponentData extends ComponentData {
   pdfviewer?: pdfviewerParams;
   animationcontrol?: animationcontrolParams;
   information?: informationParams;
+  imageButton?: ImageButtonParams;
 }
 
 export interface GLTFComponentData extends ComponentData {
@@ -432,6 +434,7 @@ export interface GLTFComponentData extends ComponentData {
   pdfviewer?: pdfviewerParams;
   animationcontrol?: animationcontrolParams;
   information?: informationParams;
+  imageButton?: ImageButtonParams;
 }
 
 declare global {
@@ -524,6 +527,7 @@ export const jsxInflators: Required<{ [K in keyof ComponentDataT]: InflatorFn }>
   pdfviewer: inflatepdfviewer,
   animationcontrol: inflateanimationcontrol,
   information: inflateInformation,
+  imageButton: inflateImageButton,
 };
 
 export const gltfInflators: Required<{ [K in keyof ComponentDataT]: InflatorFn }> = {
@@ -566,7 +570,8 @@ export const gltfInflators: Required<{ [K in keyof ComponentDataT]: InflatorFn }
   tfcIframe: inflateTFCIframe,
   pdfviewer: inflatepdfviewer,
   animationcontrol: inflateanimationcontrol,
-  information: inflateInformation,  
+  information: inflateInformation, 
+  imageButton: inflateImageButton, 
 };
 
 function jsxInflatorExists(name: string) {

@@ -138,6 +138,7 @@ import { setInitialNetworkedData } from "./utils/assign-network-ids";
 import { inflatepdfviewer } from "./inflators/pdfviewer";
 import { inflateanimationcontrol } from "./inflators/animationcontrol";
 import { inflateInformation } from "./inflators/information";
+import { inflateImageButton } from "./inflators/image-button";
 /** @jsx createElementEntity */ createElementEntity;
 
 AFRAME.GLTFModelPlus.registerComponent("media-frame", "media-frame", (el, _componentName, componentData) => {
@@ -611,3 +612,5 @@ AFRAME.GLTFModelPlus.registerComponent("iframe", "iframe", inflatorWrapper(infla
 AFRAME.GLTFModelPlus.registerComponent("pdfviewer", "pdfviewer", inflatorWrapper(inflatepdfviewer));
 AFRAME.GLTFModelPlus.registerComponent("animationcontrol", "animationcontrol", inflatorWrapper(inflateanimationcontrol));
 AFRAME.GLTFModelPlus.registerComponent("information", "information", inflatorWrapper(inflateInformation));
+AFRAME.GLTFModelPlus.registerComponent("image-button", "image-button", inflatorWrapper(inflateImageButton));
+

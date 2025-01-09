@@ -549,3 +549,21 @@ informationUI.informationURL[$isStringType] = true;
 informationUI.informationTitle[$isStringType] = true;
 informationUI.informationText[$isStringType] = true;
 informationUI.informationImage[$isStringType] = true;
+
+export const imageButton = defineComponent({
+  href: Types.ui32,
+  triggerType: Types.ui32,
+  triggerTarget: Types.ui32,
+  triggerName: Types.ui32,
+  triggerValue: Types.ui32,
+  actionsAfterClick: Types.ui32,
+  actionsData: Types.ui32
+});
+
+imageButton.href[$isStringType] = true;
+imageButton.triggerType[$isStringType] = true;
+imageButton.triggerTarget[$isStringType] = true;
+imageButton.triggerName[$isStringType] = true;
+imageButton.triggerValue[$isStringType] = true;
+imageButton.actionsAfterClick[$isStringType] = true;
+imageButton.actionsData[$isStringType] = true;

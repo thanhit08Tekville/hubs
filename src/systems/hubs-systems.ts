@@ -98,6 +98,7 @@ import { TFCIframeSystem } from "../bit-systems/iframe";
 import { pdfviewerSystem } from "../bit-systems/pdfviewer-system";
 import { animationcontrolSystem } from "../bit-systems/animationcontrol-system";
 import { informationSystem } from "../bit-systems/information-system";
+import { ImageButtonSystem } from "../bit-systems/image-button-system";
 
 
 declare global {
@@ -362,6 +363,7 @@ export function mainTick(xrFrame: XRFrame, renderer: WebGLRenderer, scene: Scene
   pdfviewerSystem(world);
   animationcontrolSystem(world);
   informationSystem(world);
+  ImageButtonSystem(world);
 
   // tock()s on components and system will fire here. (As well as any other time render() is called without unbinding onAfterRender)
   // TODO inline invoking tocks instead of using onAfterRender registered in a-scene
