@@ -9,7 +9,6 @@ import { anyEntityWith } from "../utils/bit-utils";
 import { Interacted, imageButton, imageButtonNetworkedData } from "../bit-components";
 import { takeOwnership } from "../utils/take-ownership";
 import { createNetworkedEntity } from "../hubs";
-import { image } from "html2canvas/dist/types/css/types/image";
 
 // Queries for handling entity lifecycle
 const ImageButtonQuery = defineQuery([imageButton]);
@@ -92,43 +91,43 @@ function handleTriggerType(triggerType: string, entity: number) {
 }
 
 function copyDataToNetworkedEntity(data: any, networkedId: number) {
-  if (data.href && data.href !== "") {
+  if (data.href) {
     imageButtonNetworkedData.href[networkedId] = APP.getSid(data.href);
   } else {
     console.error(`Invalid href for entity ${networkedId}:`, data.href);
   }
 
-  if (data.triggerType && data.triggerType !== "") {
+  if (data.triggerType) {
     imageButtonNetworkedData.triggerType[networkedId] = APP.getSid(data.triggerType);
   } else {
     console.error(`Invalid triggerType for entity ${networkedId}:`, data.triggerType);
   }
 
-  if (data.triggerTarget && data.triggerTarget !== "") {
+  if (data.triggerTarget) {
     imageButtonNetworkedData.triggerTarget[networkedId] = APP.getSid(data.triggerTarget);
   } else {
     console.error(`Invalid triggerTarget for entity ${networkedId}:`, data.triggerTarget);
   }
 
-  if (data.triggerName && data.triggerName !== "") {
+  if (data.triggerName) {
     imageButtonNetworkedData.triggerName[networkedId] = APP.getSid(data.triggerName);
   } else {
     console.error(`Invalid triggerName for entity ${networkedId}:`, data.triggerName);
   }
 
-  if (data.triggerValue && data.triggerValue !== "") {
+  if (data.triggerValue) {
     imageButtonNetworkedData.triggerValue[networkedId] = APP.getSid(data.triggerValue);
   } else {
     console.error(`Invalid triggerValue for entity ${networkedId}:`, data.triggerValue);
   }
 
-  if (data.actionsAfterClick && data.actionsAfterClick !== "") {
+  if (data.actionsAfterClick) {
     imageButtonNetworkedData.actionsAfterClick[networkedId] = APP.getSid(data.actionsAfterClick);
   } else {
     console.error(`Invalid actionsAfterClick for entity ${networkedId}:`, data.actionsAfterClick);
   }
 
-  if (data.actionsData && data.actionsData !== "") {
+  if (data.actionsData) {
     imageButtonNetworkedData.actionsData[networkedId] = APP.getSid(data.actionsData);
   } else {
     console.error(`Invalid actionsData for entity ${networkedId}:`, data.actionsData);
@@ -167,18 +166,18 @@ function handleActionsAfterClick(
         break;
 
       case 2: // Animation
-        const { animationName, animationTarget, animationValue } = actionsData;
-        if (animationName && animationTarget && animationValue) {
-          console.log("Playing animation:", {
-            animationName,
-            animationTarget,
-            animationValue,
-          });
-        } else console.error("Missing animation data:", actionsData);
+        // const { animationName, animationTarget, animationValue } = actionsData;
+        // if (animationName && animationTarget && animationValue) {
+        //   console.log("Playing animation:", {
+        //     animationName,
+        //     animationTarget,
+        //     animationValue,
+        //   });
+        // } else console.error("Missing animation data:", actionsData);
         break;
 
       case 3: // Audio
-        handleAudioAction(actionsData.audio);
+        // handleAudioAction(actionsData.audio);
         break;
 
       default:
@@ -199,8 +198,11 @@ function handleAudioAction(audioUrl: string) {
 
   try {
     if (currentAudio) {
-      currentAudio.pause();
-      currentAudio.currentTime = 0;
+      if (!currentAudio.paused) {
+        console.log("Stopping currently playing audio.");
+        currentAudio.pause();
+        currentAudio.currentTime = 0; // Reset to the beginning
+      }
     }
 
     const audioElement = new Audio(audioUrl);
@@ -229,6 +231,9 @@ function enableScenarioButton(world: HubsWorld, entity: number) {
   if (button) button.visible = true;
   else console.error(`Button with entity ${entity} not found.`);
 }
+
+// let currentStep = 0;
+// const listScenarioButtons: { [key: number]: number } = {};
 
 /**
  * Main system for handling image buttons.
@@ -263,11 +268,13 @@ export function ImageButtonSystem(world: HubsWorld) {
         console.error(`Invalid triggerType for entity ${entity}:`, data.triggerType);
       }
       if (data.triggerType === "scenario") {
-        const nextValue = parseInt(data.triggerValue || "0", 10) + 1;
+        const nextValue = parseInt(data.triggerValue || "-2", 10) + 1;
         const nextEntity = Array.from(scenarioButtons.entries()).find(
           ([_, value]) => value === nextValue
         )?.[0];
-        if (nextEntity) enableScenarioButton(world, nextEntity);
+        if (nextEntity) {
+          enableScenarioButton(world, nextEntity);
+        }
       }
       if (Array.isArray(data.actionsAfterClick)) {
         handleActionsAfterClick(data.actionsAfterClick, data.actionsData, entity, world);
@@ -300,32 +307,67 @@ export function ImageButtonSystem(world: HubsWorld) {
       }
     }
 
-    if (networkedId) {
-      const entityTargetId = imageButtonNetworkedData.entityTargetId[networkedId];
-      if (entityTargetId != entity) {
-        return;
-      }
-      if (APP.getString(imageButtonNetworkedData.clicked[networkedId]) === "true") {
-        if(APP.getString(imageButton.clicked[entityTargetId]) === "false") {
+    if (!networkedId) return; // Exit early if networkedId is undefined
+
+    const triggerType = APP.getString(imageButtonNetworkedData.triggerType[networkedId]);
+    const isClicked = APP.getString(imageButtonNetworkedData.clicked[networkedId]);
+
+    // Check if triggerType is "scenario" and the button is clicked
+    if (triggerType !== "scenario" || isClicked !== "true") return;
+
+    const triggerData = APP.getString(imageButtonNetworkedData.triggerValue[networkedId]) || "-1";
+
+    // Validate triggerData
+    if (triggerData === "-1") {
+      console.error(`Invalid triggerValue for entity ${entity}:`, triggerData);
+      return;
+    }
+
+    const currentValue = parseInt(triggerData, 10);
+
+    // Disable all the scenario buttons before the current button
+    scenarioButtons.forEach((step_value, key) => {
+      if (step_value <= currentValue) {
+        // Find the current entity associated with step_value
+        const currentEntity = Array.from(scenarioButtons.entries()).find(
+          ([_, value]) => value === step_value
+        )?.[0];
+
+        if (!currentEntity) return; // Exit if no currentEntity is found
+
+        // Check if the currentEntity button is not clicked
+        if (APP.getString(imageButton.clicked[currentEntity]) === "false") {
           const actionsAfterClick = APP.getString(imageButtonNetworkedData.actionsAfterClick[networkedId]);
-          if (APP.getString(imageButtonNetworkedData.triggerType[networkedId]) === "scenario") {
-            const triggerData = APP.getString(imageButtonNetworkedData.triggerValue[networkedId])
-            const nextValue = parseInt(triggerData || "0", 10) + 1;
-            const nextEntity = Array.from(scenarioButtons.entries()).find(
-              ([_, value]) => value === nextValue
-            )?.[0];
-            if (nextEntity) enableScenarioButton(world, nextEntity);
-          }
+
           if (Array.isArray(actionsAfterClick)) {
             const actionsData = APP.getString(imageButtonNetworkedData.actionsData[networkedId]);
-            handleActionsAfterClick(actionsAfterClick, actionsData, entityTargetId, world);
+            handleActionsAfterClick(actionsAfterClick, actionsData, currentEntity, world);
           } else {
-            console.error(`Invalid actionsAfterClick for entity ${entity}:`, data.actionsAfterClick);
+            console.error(`Invalid actionsAfterClick for entity ${entity}:`, actionsAfterClick);
           }
-          APP.getString(imageButton.clicked[entityTargetId]) === "true";
+
+          imageButton.clicked[currentEntity] = APP.getSid("true");
+          console.log(`Clicked scenario button ${step_value}`);
         }
-        
+
+        // Process the next button
+        const nextValue = step_value + 1;
+        const nextEntity = Array.from(scenarioButtons.entries()).find(
+          ([_, value]) => value === nextValue
+        )?.[0];
+
+        if (nextEntity && APP.getString(imageButton.clicked[nextEntity]) === "false") {
+          const button = world.eid2obj.get(nextEntity);
+
+          if (!button || !button.visible) {
+            enableScenarioButton(world, nextEntity);
+            console.log(`Enabled scenario button ${nextValue}`);
+          }
+        }
       }
-    }
+    });
+
+
+
   });
 }
