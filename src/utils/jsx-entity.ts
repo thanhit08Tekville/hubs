@@ -111,6 +111,7 @@ import { pdfviewerParams, inflatepdfviewer } from "../inflators/pdfviewer";
 import { inflateanimationcontrol, animationcontrolParams } from "../inflators/animationcontrol";
 import { inflateInformation, informationParams } from "../inflators/information";
 import { inflateImageButton, ImageButtonParams } from "../inflators/image-button";
+import { inflateImageButtonNetworkedData, ImageButtonNetworkedDataParams } from "../inflators/image-button-networked-data";
 
 
 preload(
@@ -391,6 +392,7 @@ export interface JSXComponentData extends ComponentData {
   animationcontrol?: animationcontrolParams;
   information?: informationParams;
   imageButton?: ImageButtonParams;
+  imageButtonNetworkedData?: ImageButtonNetworkedDataParams;
 }
 
 export interface GLTFComponentData extends ComponentData {
@@ -435,6 +437,7 @@ export interface GLTFComponentData extends ComponentData {
   animationcontrol?: animationcontrolParams;
   information?: informationParams;
   imageButton?: ImageButtonParams;
+  imageButtonNetworkedData?: ImageButtonNetworkedDataParams;
 }
 
 declare global {
@@ -528,6 +531,7 @@ export const jsxInflators: Required<{ [K in keyof ComponentDataT]: InflatorFn }>
   animationcontrol: inflateanimationcontrol,
   information: inflateInformation,
   imageButton: inflateImageButton,
+  imageButtonNetworkedData: inflateImageButtonNetworkedData,
 };
 
 export const gltfInflators: Required<{ [K in keyof ComponentDataT]: InflatorFn }> = {
@@ -572,6 +576,7 @@ export const gltfInflators: Required<{ [K in keyof ComponentDataT]: InflatorFn }
   animationcontrol: inflateanimationcontrol,
   information: inflateInformation, 
   imageButton: inflateImageButton, 
+  imageButtonNetworkedData: inflateImageButtonNetworkedData,
 };
 
 function jsxInflatorExists(name: string) {

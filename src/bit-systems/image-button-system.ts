@@ -6,7 +6,10 @@ import {
   hasComponent,
 } from "bitecs";
 import { anyEntityWith } from "../utils/bit-utils";
-import { Interacted, imageButton } from "../bit-components";
+import { Interacted, imageButton, imageButtonNetworkedData } from "../bit-components";
+import { takeOwnership } from "../utils/take-ownership";
+import { createNetworkedEntity } from "../hubs";
+import { image } from "html2canvas/dist/types/css/types/image";
 
 // Queries for handling entity lifecycle
 const ImageButtonQuery = defineQuery([imageButton]);
@@ -41,6 +44,7 @@ function getImageButtonData(entity: number) {
     triggerValue: APP.getString(imageButton.triggerValue[entity]),
     actionsAfterClick: APP.getString(imageButton.actionsAfterClick[entity]),
     actionsData: APP.getString(imageButton.actionsData[entity]),
+    clicked: APP.getString(imageButton.clicked[entity]),
   };
 }
 
@@ -84,6 +88,50 @@ function handleTriggerType(triggerType: string, entity: number) {
         )}, value: ${APP.getString(imageButton.triggerValue[entity])}`
       );
       break;
+  }
+}
+
+function copyDataToNetworkedEntity(data: any, networkedId: number) {
+  if (data.href && data.href !== "") {
+    imageButtonNetworkedData.href[networkedId] = APP.getSid(data.href);
+  } else {
+    console.error(`Invalid href for entity ${networkedId}:`, data.href);
+  }
+
+  if (data.triggerType && data.triggerType !== "") {
+    imageButtonNetworkedData.triggerType[networkedId] = APP.getSid(data.triggerType);
+  } else {
+    console.error(`Invalid triggerType for entity ${networkedId}:`, data.triggerType);
+  }
+
+  if (data.triggerTarget && data.triggerTarget !== "") {
+    imageButtonNetworkedData.triggerTarget[networkedId] = APP.getSid(data.triggerTarget);
+  } else {
+    console.error(`Invalid triggerTarget for entity ${networkedId}:`, data.triggerTarget);
+  }
+
+  if (data.triggerName && data.triggerName !== "") {
+    imageButtonNetworkedData.triggerName[networkedId] = APP.getSid(data.triggerName);
+  } else {
+    console.error(`Invalid triggerName for entity ${networkedId}:`, data.triggerName);
+  }
+
+  if (data.triggerValue && data.triggerValue !== "") {
+    imageButtonNetworkedData.triggerValue[networkedId] = APP.getSid(data.triggerValue);
+  } else {
+    console.error(`Invalid triggerValue for entity ${networkedId}:`, data.triggerValue);
+  }
+
+  if (data.actionsAfterClick && data.actionsAfterClick !== "") {
+    imageButtonNetworkedData.actionsAfterClick[networkedId] = APP.getSid(data.actionsAfterClick);
+  } else {
+    console.error(`Invalid actionsAfterClick for entity ${networkedId}:`, data.actionsAfterClick);
+  }
+
+  if (data.actionsData && data.actionsData !== "") {
+    imageButtonNetworkedData.actionsData[networkedId] = APP.getSid(data.actionsData);
+  } else {
+    console.error(`Invalid actionsData for entity ${networkedId}:`, data.actionsData);
   }
 }
 
@@ -204,9 +252,11 @@ export function ImageButtonSystem(world: HubsWorld) {
 
   const entities = ImageButtonQuery(world);
   entities.forEach((entity) => {
+    let networkedId = anyEntityWith(world, imageButtonNetworkedData);
     const data = getImageButtonData(entity);
     if (clicked(world, entity)) {
       logImageButtonData("Clicked", entity, data);
+      imageButton.clicked[entity] = APP.getSid("true");
       if (typeof data.triggerType === 'string') {
         handleTriggerType(data.triggerType, entity);
       } else {
@@ -223,6 +273,58 @@ export function ImageButtonSystem(world: HubsWorld) {
         handleActionsAfterClick(data.actionsAfterClick, data.actionsData, entity, world);
       } else {
         console.error(`Invalid actionsAfterClick for entity ${entity}:`, data.actionsAfterClick);
+      }
+      if (networkedId) {
+        takeOwnership(world, networkedId);
+        copyDataToNetworkedEntity(data, networkedId);
+        imageButtonNetworkedData.clicked[networkedId] = APP.getSid("true");
+        imageButtonNetworkedData.entityTargetId[networkedId] = entity;
+      } else {
+        const nid = createNetworkedEntity(world, "image-button-networked-data", {
+          href: data.href,
+          triggerType: data.triggerType,
+          triggerTarget: data.triggerTarget,
+          triggerName: data.triggerName,
+          triggerValue: data.triggerValue,
+          actionsAfterClick: data.actionsAfterClick,
+          actionsData: data.actionsData,
+        });
+        networkedId = anyEntityWith(world, imageButtonNetworkedData);
+        if (networkedId) {
+          copyDataToNetworkedEntity(data, networkedId);
+          imageButtonNetworkedData.entityTargetId[networkedId] = entity;
+          imageButtonNetworkedData.clicked[networkedId] = APP.getSid("true");
+        } else {
+          console.error(`Failed to create networked entity for image button ${entity}.`);
+        }
+      }
+    }
+
+    if (networkedId) {
+      const entityTargetId = imageButtonNetworkedData.entityTargetId[networkedId];
+      if (entityTargetId != entity) {
+        return;
+      }
+      if (APP.getString(imageButtonNetworkedData.clicked[networkedId]) === "true") {
+        if(APP.getString(imageButton.clicked[entityTargetId]) === "false") {
+          const actionsAfterClick = APP.getString(imageButtonNetworkedData.actionsAfterClick[networkedId]);
+          if (APP.getString(imageButtonNetworkedData.triggerType[networkedId]) === "scenario") {
+            const triggerData = APP.getString(imageButtonNetworkedData.triggerValue[networkedId])
+            const nextValue = parseInt(triggerData || "0", 10) + 1;
+            const nextEntity = Array.from(scenarioButtons.entries()).find(
+              ([_, value]) => value === nextValue
+            )?.[0];
+            if (nextEntity) enableScenarioButton(world, nextEntity);
+          }
+          if (Array.isArray(actionsAfterClick)) {
+            const actionsData = APP.getString(imageButtonNetworkedData.actionsData[networkedId]);
+            handleActionsAfterClick(actionsAfterClick, actionsData, entityTargetId, world);
+          } else {
+            console.error(`Invalid actionsAfterClick for entity ${entity}:`, data.actionsAfterClick);
+          }
+          APP.getString(imageButton.clicked[entityTargetId]) === "true";
+        }
+        
       }
     }
   });

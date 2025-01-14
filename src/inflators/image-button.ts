@@ -11,7 +11,8 @@ export type ImageButtonParams = {
     triggerName: string,
     triggerValue: string,
     actionsAfterClick: string,
-    actionsData: string
+    actionsData: string,
+    clicked: string
 };
 
 const DEFAULTS: Required<ImageButtonParams> = {
@@ -21,7 +22,8 @@ const DEFAULTS: Required<ImageButtonParams> = {
     triggerName: "",
     triggerValue: "",
     actionsAfterClick: "",
-    actionsData: ""
+    actionsData: "",
+    clicked: "false"
 };
 
 export function inflateImageButton(world: HubsWorld, eid: number, params: ImageButtonParams) {
@@ -35,6 +37,7 @@ export function inflateImageButton(world: HubsWorld, eid: number, params: ImageB
     imageButton.triggerValue[eid] = APP.getSid(requiredParams.triggerValue);
     imageButton.actionsAfterClick[eid] = APP.getSid(requiredParams.actionsAfterClick);
     imageButton.actionsData[eid] = APP.getSid(requiredParams.actionsData);
+    imageButton.clicked[eid] = APP.getSid(requiredParams.clicked);
     addComponent(world, CursorRaycastable, eid);
     addComponent(world, RemoteHoverTarget, eid);
     addComponent(world, SingleActionButton, eid);

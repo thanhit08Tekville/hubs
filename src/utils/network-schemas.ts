@@ -9,7 +9,8 @@ import {
   NetworkedText,
   NetworkedTransform,
   NetworkedVideo,
-  NetworkedWaypoint
+  NetworkedWaypoint,
+  imageButtonNetworkedData,
 } from "../bit-components";
 import { defineNetworkSchema } from "./define-network-schema";
 import { NetworkedMediaFrameSchema } from "./networked-media-frame-schema";
@@ -20,6 +21,7 @@ import { NetworkedWaypointSchema } from "./networked-waypoint-schema";
 import type { CursorBuffer, EntityID } from "./networking-types";
 import { NetworkedTextSchema } from "./networked-text-schema";
 import { NetworkedRigidBodySchema } from "./networked-rigid-body";
+import { imageButtonNetworkedDataSchema } from "../network-schemas/image-button-networked-data-schema";
 
 export interface StoredComponent {
   version: number;
@@ -52,6 +54,7 @@ schemas.set(NetworkedFloatyObject, {
 schemas.set(NetworkedPDF, NetworkedPDFSchema);
 schemas.set(NetworkedText, NetworkedTextSchema);
 schemas.set(NetworkedRigidBody, NetworkedRigidBodySchema);
+schemas.set(imageButtonNetworkedData, imageButtonNetworkedDataSchema);
 
 export const networkableComponents = Array.from(schemas.keys());
 

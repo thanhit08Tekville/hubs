@@ -2,6 +2,9 @@ import { CameraPrefab, CubeMediaFramePrefab } from "../prefabs/camera-tool";
 import { MediaPrefab } from "../prefabs/media";
 import { PrefabDefinitionT, PrefabNameT } from "../types";
 
+import { imageButtonNetworkedDataPrefabs } from "./image-button-networked-data";
+
+
 export type Permission =
   | "spawn_camera"
   | "spawn_and_move_media"
@@ -20,3 +23,5 @@ export const prefabs = new Map<PrefabNameT, PrefabDefinitionT>();
 prefabs.set("camera", { permission: "spawn_camera", template: CameraPrefab });
 prefabs.set("cube", { permission: "spawn_and_move_media", template: CubeMediaFramePrefab });
 prefabs.set("media", { permission: "spawn_and_move_media", template: MediaPrefab });
+
+prefabs.set("image-button-networked-data", { permission: "spawn_and_move_media", template: imageButtonNetworkedDataPrefabs });
