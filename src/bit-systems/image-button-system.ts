@@ -145,16 +145,29 @@ function handleActionsAfterClick(
   actionsAfterClick: any[],
   actionsData: any,
   entity: number,
-  world: HubsWorld
+  world: HubsWorld,
+  callback: () => void
 ) {
   if (!Array.isArray(actionsAfterClick)) {
     console.error("Invalid actionsAfterClick format:", actionsAfterClick);
     return;
   }
 
+  // Count the number of pending actions
+  let pendingActions = actionsAfterClick.length;
+
+  // Callback to invoke when all actions are complete
+  const actionComplete = () => {
+    pendingActions -= 1;
+    if (pendingActions === 0) {
+      callback(); // Invoke the callback when all actions are finished
+    }
+  };
+
   actionsAfterClick.forEach((action) => {
     if (!action || typeof action.value !== "number") {
       console.warn("Invalid action object:", action);
+      actionComplete(); // Consider invalid actions as completed
       return;
     }
 
@@ -163,21 +176,28 @@ function handleActionsAfterClick(
         const button = world.eid2obj.get(entity);
         if (button) button.visible = false;
         else console.error(`Button with entity ${entity} not found.`);
+
+        // Mark the action as complete
+        actionComplete();
         break;
 
       case 2: // Animation
-        // const { animationName, animationTarget, animationValue } = actionsData;
-        // if (animationName && animationTarget && animationValue) {
-        //   console.log("Playing animation:", {
-        //     animationName,
-        //     animationTarget,
-        //     animationValue,
-        //   });
-        // } else console.error("Missing animation data:", actionsData);
+        const { animationName, animationTarget, animationValue } = actionsData;
+        if (animationName && animationTarget && animationValue) {
+          console.log("Playing animation:", {
+            animationName,
+            animationTarget,
+            animationValue,
+          });
+        } else console.error("Missing animation data:", actionsData);
+
+        // Mark the action as complete
+        actionComplete();
         break;
 
       case 3: // Audio
-        // handleAudioAction(actionsData.audio);
+        // Do actionComplete() when the audio is finished playing
+        handleAudioAction(actionsData.audio, actionComplete);
         break;
 
       default:
@@ -185,36 +205,30 @@ function handleActionsAfterClick(
     }
   });
 }
+const tempAudio = ""
+function playAudioString(audioUrl: string, callback: () => void) {
+  if (currentAudio) {
+    currentAudio.pause();
+  }
 
+  currentAudio = new Audio(audioUrl);
+  currentAudio.play();
+  currentAudio.onended = () => {
+    callback();
+  };
+}
 /**
  * Play audio for the specified URL, stopping any currently playing audio.
  * @param {string} audioUrl - The URL of the audio to play.
  */
-function handleAudioAction(audioUrl: string) {
+function handleAudioAction(audioUrl: string, callback: () => void) {
   if (!audioUrl) {
     console.error("Missing audio URL.");
     return;
   }
 
   try {
-    if (currentAudio) {
-      if (!currentAudio.paused) {
-        console.log("Stopping currently playing audio.");
-        currentAudio.pause();
-        currentAudio.currentTime = 0; // Reset to the beginning
-      }
-    }
-
-    const audioElement = new Audio(audioUrl);
-    audioElement.volume = 1.0;
-    audioElement.play()
-      .then(() => console.log("Audio is playing:", audioUrl))
-      .catch((error) => console.error("Audio playback error:", error));
-
-    currentAudio = audioElement;
-    audioElement.addEventListener("ended", () => {
-      if (currentAudio === audioElement) currentAudio = null;
-    });
+    playAudioString(audioUrl, callback);
   } catch (error) {
     console.error("Error playing audio:", error);
   }
@@ -273,28 +287,31 @@ export function ImageButtonSystem(world: HubsWorld) {
       } else {
         console.error(`Invalid triggerType for entity ${entity}:`, data.triggerType);
       }
-      // Handle post-click actions
-      if (data.triggerType === "scenario") {
-        // Check if the triggerValue is a valid number
-        const nextValue = parseInt(data.triggerValue || "-2", 10) + 1;
-        // Find the next entity associated with nextValue
-        const nextEntity = Array.from(scenarioButtons.entries()).find(
-          ([_, value]) => value === nextValue
-        )?.[0];
-        // Enable the nextEntity button if it exists
-        if (nextEntity) {
-          enableScenarioButton(world, nextEntity);
-        }
-      }
+
       // Handle actionsAfterClick if it's an array of actions
       if (Array.isArray(data.actionsAfterClick)) {
         // Process the actions after the button is clicked
-        handleActionsAfterClick(data.actionsAfterClick, data.actionsData, entity, world);
+        handleActionsAfterClick(data.actionsAfterClick, data.actionsData, entity, world, () => {
+          // Handle post-click actions
+          if (data.triggerType === "scenario") {
+            // Check if the triggerValue is a valid number
+            const nextValue = parseInt(data.triggerValue || "-2", 10) + 1;
+            // Find the next entity associated with nextValue
+            const nextEntity = Array.from(scenarioButtons.entries()).find(
+              ([_, value]) => value === nextValue
+            )?.[0];
+            // Enable the nextEntity button if it exists
+            if (nextEntity) {
+              enableScenarioButton(world, nextEntity);
+            }
+          }
+        });
       } else {
         console.error(`Invalid actionsAfterClick for entity ${entity}:`, data.actionsAfterClick);
       }
+
       // Check if the entity has a networked entity
-      if (!networkedId) {        
+      if (!networkedId) {
         // Create a networked entity for the current entity
         createNetworkedEntity(world, "image-button-networked-data", {
           href: data.href,
@@ -306,7 +323,7 @@ export function ImageButtonSystem(world: HubsWorld) {
           actionsData: data.actionsData,
         });
         // Retrieve the networked entity ID
-        networkedId = anyEntityWith(world, imageButtonNetworkedData);        
+        networkedId = anyEntityWith(world, imageButtonNetworkedData);
       }
       if (networkedId) {
         // Take ownership of the networked entity   
@@ -322,78 +339,78 @@ export function ImageButtonSystem(world: HubsWorld) {
       }
     }
 
-    if (!networkedId) return; // Exit early if networkedId is undefined
+    if (networkedId) {
+      // Retrieve networked entity data for the current entity ID
+      const triggerType = APP.getString(imageButtonNetworkedData.triggerType[networkedId]); // Trigger type
+      const isClicked = APP.getString(imageButtonNetworkedData.clicked[networkedId]); // Clicked state
 
-    // Retrieve networked entity data for the current entity ID
-    const triggerType = APP.getString(imageButtonNetworkedData.triggerType[networkedId]); // Trigger type
-    const isClicked = APP.getString(imageButtonNetworkedData.clicked[networkedId]); // Clicked state
+      // Check if triggerType is "scenario" and the button is clicked
+      if (triggerType !== "scenario" || isClicked !== "true") return;
 
-    // Check if triggerType is "scenario" and the button is clicked
-    if (triggerType !== "scenario" || isClicked !== "true") return;
+      // Retrieve the triggerValue for the current entity
+      const triggerData = APP.getString(imageButtonNetworkedData.triggerValue[networkedId]) || "-1";
 
-    // Retrieve the triggerValue for the current entity
-    const triggerData = APP.getString(imageButtonNetworkedData.triggerValue[networkedId]) || "-1";
-
-    // Validate triggerData
-    if (triggerData === "-1") {
-      console.error(`Invalid triggerValue for entity ${entity}:`, triggerData);
-      return;
-    }
-
-    // Retrieve the current value for the triggerData
-    // If trigger type is "scenario", triggerData should be a number (scenario step)
-    const currentValue = parseInt(triggerData, 10);
-
-    if (currentValue < 0) {
-      console.error(`Invalid triggerValue for entity ${entity}:`, currentValue);
-      return;
-    }
-
-    // Disable all the scenario buttons before the current button
-    scenarioButtons.forEach((step_value, key) => {
-      if (step_value <= currentValue) {
-        // Find the current entity associated with step_value
-        const currentEntity = Array.from(scenarioButtons.entries()).find(
-          ([_, value]) => value === step_value
-        )?.[0];
-
-        if (!currentEntity) return; // Exit if no currentEntity is found
-
-        // Check if the currentEntity button is not clicked
-        if (APP.getString(imageButton.clicked[currentEntity]) === "false") {
-          const actionsAfterClick = APP.getString(imageButtonNetworkedData.actionsAfterClick[networkedId]);
-
-          // Handle actionsAfterClick if it's an array of actions
-          if (Array.isArray(actionsAfterClick)) {
-            // Retrieve actionsData for the current entity
-            const actionsData = APP.getString(imageButtonNetworkedData.actionsData[networkedId]);
-            // Process the actions after the button is clicked
-            handleActionsAfterClick(actionsAfterClick, actionsData, currentEntity, world);
-          } else {
-            console.error(`Invalid actionsAfterClick for entity ${entity}:`, actionsAfterClick);
-          }
-          // Mark the currentEntity button as clicked
-          imageButton.clicked[currentEntity] = APP.getSid("true");
-        }
-
-        // Process the next button
-        const nextValue = step_value + 1;
-        // Find the next entity associated with nextValue
-        const nextEntity = Array.from(scenarioButtons.entries()).find(
-          ([_, value]) => value === nextValue
-        )?.[0];
-
-        // Enable the nextEntity button if it exists and is not clicked
-        if (nextEntity && APP.getString(imageButton.clicked[nextEntity]) === "false") {
-          // Enable the nextEntity button
-          const button = world.eid2obj.get(nextEntity);
-          // Check if the button is not visible
-          if (!button || !button.visible) {
-            // Enable the nextEntity button
-            enableScenarioButton(world, nextEntity);
-          }
-        }
+      // Validate triggerData
+      if (triggerData === "-1") {
+        console.error(`Invalid triggerValue for entity ${entity}:`, triggerData);
+        return;
       }
-    });
+
+      // Retrieve the current value for the triggerData
+      // If trigger type is "scenario", triggerData should be a number (scenario step)
+      const currentValue = parseInt(triggerData, 10);
+
+      if (currentValue < 0) {
+        console.error(`Invalid triggerValue for entity ${entity}:`, currentValue);
+        return;
+      }
+
+      // Disable all the scenario buttons before the current button
+      scenarioButtons.forEach((step_value, key) => {
+        if (step_value <= currentValue) {
+          // Find the current entity associated with step_value
+          const currentEntity = Array.from(scenarioButtons.entries()).find(
+            ([_, value]) => value === step_value
+          )?.[0];
+
+          if (!currentEntity) return; // Exit if no currentEntity is found
+
+          // Check if the currentEntity button is not clicked
+          if (APP.getString(imageButton.clicked[currentEntity]) === "false") {
+            const actionsAfterClick = APP.getString(imageButtonNetworkedData.actionsAfterClick[networkedId]);
+
+            // Handle actionsAfterClick if it's an array of actions
+            if (Array.isArray(actionsAfterClick)) {
+              // Retrieve actionsData for the current entity
+              const actionsData = APP.getString(imageButtonNetworkedData.actionsData[networkedId]);
+              // Process the actions after the button is clicked
+              handleActionsAfterClick(actionsAfterClick, actionsData, currentEntity, world, () => {
+                // Process the next button
+                const nextValue = step_value + 1;
+                // Find the next entity associated with nextValue
+                const nextEntity = Array.from(scenarioButtons.entries()).find(
+                  ([_, value]) => value === nextValue
+                )?.[0];
+
+                // Enable the nextEntity button if it exists and is not clicked
+                if (nextEntity && APP.getString(imageButton.clicked[nextEntity]) === "false") {
+                  // Enable the nextEntity button
+                  const button = world.eid2obj.get(nextEntity);
+                  // Check if the button is not visible
+                  if (!button || !button.visible) {
+                    // Enable the nextEntity button
+                    enableScenarioButton(world, nextEntity);
+                  }
+                }
+              });
+            } else {
+              console.error(`Invalid actionsAfterClick for entity ${entity}:`, actionsAfterClick);
+            }
+            // Mark the currentEntity button as clicked
+            imageButton.clicked[currentEntity] = APP.getSid("true");
+          }
+        }
+      });
+    }
   });
 }
