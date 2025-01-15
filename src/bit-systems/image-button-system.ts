@@ -9,6 +9,8 @@ import { anyEntityWith } from "../utils/bit-utils";
 import { Interacted, imageButton, imageButtonNetworkedData } from "../bit-components";
 import { takeOwnership } from "../utils/take-ownership";
 import { createNetworkedEntity } from "../hubs";
+import { findAncestorWithComponent } from "../utils/scene-graph";
+import { AElement } from "aframe";
 
 // Queries for handling entity lifecycle
 const ImageButtonQuery = defineQuery([imageButton]);
@@ -134,6 +136,71 @@ function copyDataToNetworkedEntity(data: any, networkedId: number) {
   }
 }
 
+function handleAnimationAction(
+  animationName: string, // The name of the animation clip
+  animationTarget: string, // The target object to animate
+  animationValue: string, // The animation value (e.g., "play", "stop", "loop")
+  callback: () => void
+) {
+  console.log("Playing animation:", {
+    animationName,
+    animationTarget,
+    animationValue,
+  });
+
+  const environmentScene = (document.querySelector("#environment-scene") as AElement)?.object3D?.children[0];
+  if (environmentScene && environmentScene.el) {
+    const animationMixer = findAncestorWithComponent(environmentScene.el, "animation-mixer");
+    if (!animationMixer) {
+      console.error("Animation mixer not found.");
+      return;
+    }
+    console.log("Animation mixer:", animationMixer);
+    const { mixer, animations } = animationMixer.components["animation-mixer"];
+    if (!mixer) {
+      console.error("Animation mixer not found.");
+      return;
+    }
+
+    if (!animations) {
+      console.error("Animations not found.");
+      return;
+    }
+    const targetObject = document.getElementsByClassName(animationTarget)[0];
+    if (!targetObject) {
+      console.error("Target object not found.");
+      return;
+    }
+
+    // Find the animation clip by name
+    const clip = animations.find((clip: THREE.AnimationClip) => clip.name === animationName);
+    if (!clip) {
+      console.error("Animation clip not found.");
+      return;
+    }
+    // Create a new animation action
+    const action = mixer.clipAction(clip, targetObject);
+
+    if (animationValue === "play") {
+      action.reset(); // Reset the animation
+      action.setLoop(THREE.LoopOnce); // Play the animation once
+      // Play the animation
+      action.play();
+    }
+
+    if (animationValue === "stop") {
+      action.stop();
+    }
+    if (animationValue === "loop") {
+      action.reset();
+      action.setLoop(THREE.LoopRepeat, Infinity);
+      action.play();
+    }
+  }
+
+  callback();
+}
+
 /**
  * Handle post-click actions for an image button.
  * @param {any[]} actionsAfterClick - List of actions to process.
@@ -190,9 +257,8 @@ function handleActionsAfterClick(
             animationValue,
           });
         } else console.error("Missing animation data:", actionsData);
-
-        // Mark the action as complete
-        actionComplete();
+        // Play the animation and mark the action as complete
+        handleAnimationAction(animationName, animationTarget, animationValue, actionComplete);
         break;
 
       case 3: // Audio
@@ -377,6 +443,10 @@ export function ImageButtonSystem(world: HubsWorld) {
 
           // Check if the currentEntity button is not clicked
           if (APP.getString(imageButton.clicked[currentEntity]) === "false") {
+            if (!networkedId) {
+              console.error(`Networked entity not found for entity ${entity}.`);
+              return;
+            }
             const actionsAfterClick = APP.getString(imageButtonNetworkedData.actionsAfterClick[networkedId]);
 
             // Handle actionsAfterClick if it's an array of actions
