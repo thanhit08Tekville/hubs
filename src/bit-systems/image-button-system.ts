@@ -19,6 +19,7 @@ const ImageButtonExitQuery = exitQuery(ImageButtonQuery);
 
 // Scenario buttons and audio state
 const scenarioButtons: Map<number, number> = new Map();
+const buttonClickTimes: Map<number, number> = new Map();
 let currentAudio: HTMLAudioElement | null = null;
 
 /**
@@ -201,6 +202,63 @@ function handleAnimationAction(
   callback();
 }
 
+function handleTransformAction(
+  transformTarget: string, // The target object to transform
+  transformType: string, // The transform type (e.g., "rotation", "scale", "position")
+  transformValue: string, // The transform value (e.g., "0 0 0", "1 1 1", "0 0 0 0")
+  // callback: () => void
+) {
+  console.log("Transforming object:", {
+    transformTarget,
+    transformType,
+    transformValue,
+  });
+
+  const targetObject = document.getElementsByClassName(transformTarget)[0] as AElement;
+  if (!targetObject) {
+    console.error("Target object not found.");
+    return;
+  }
+
+  // Convert the transform value to an array of numbers
+  const values = transformValue.split(",").map((value) => parseFloat(value));
+  if (values.length === 0) {
+    console.error("Invalid transform value:", transformValue);
+    return;
+  }
+
+  // Apply the transform to the target object
+  switch (transformType) {
+    case "rotate":
+      console.log("Setting rotation:", values);
+      // targetObject.object3D.rotation.set(
+      //   THREE.MathUtils.degToRad(values[0]),
+      //   THREE.MathUtils.degToRad(values[1]),
+      //   THREE.MathUtils.degToRad(values[2])
+      // );
+      break;
+    case "scale":
+      console.log("Setting scale:", values);
+      // targetObject.object3D.scale.set(values[0], values[1], values[2]);
+      break;
+    case "translate":
+      console.log("Setting position:", values);
+      // get current position
+      const currentPosition = targetObject.getAttribute('position')
+      if (!currentPosition) {
+        console.error("Current position not found.");
+        return;
+      }
+      const targetPosition = targetObject.object3D.position;
+      const newTargetPosition = `${targetPosition.x + values[0]} ${targetPosition.y + values[1]} ${targetPosition.z + values[2]}`;
+      targetObject.setAttribute('position', newTargetPosition); break;
+    default:
+      console.error("Invalid transform type:", transformType);
+  }
+
+  // callback();
+}
+
 /**
  * Handle post-click actions for an image button.
  * @param {any[]} actionsAfterClick - List of actions to process.
@@ -231,6 +289,9 @@ function handleActionsAfterClick(
     }
   };
 
+  const shouldHideButton = actionsAfterClick.some((action) => action.value === 1);
+  const isTransformButton = actionsAfterClick.some((action) => action.value === 4);
+
   actionsAfterClick.forEach((action) => {
     if (!action || typeof action.value !== "number") {
       console.warn("Invalid action object:", action);
@@ -240,15 +301,15 @@ function handleActionsAfterClick(
 
     switch (action.value) {
       case 1: // Hide
-        const button = world.eid2obj.get(entity);
-        if (button) button.visible = false;
-        else console.error(`Button with entity ${entity} not found.`);
-
-        // Mark the action as complete
-        actionComplete();
         break;
 
       case 2: // Animation
+        if (shouldHideButton) {
+          const button = world.eid2obj.get(entity);
+          if (button) button.visible = false;
+          else console.error(`Button with entity ${entity} not found.`);
+          actionComplete();
+        }
         const { animationName, animationTarget, animationValue } = actionsData;
         if (animationName && animationTarget && animationValue) {
           console.log("Playing animation:", {
@@ -262,8 +323,34 @@ function handleActionsAfterClick(
         break;
 
       case 3: // Audio
+        if (shouldHideButton) {
+          const button = world.eid2obj.get(entity);
+          if (button) button.visible = false;
+          else console.error(`Button with entity ${entity} not found.`);
+          actionComplete();
+        }
         // Do actionComplete() when the audio is finished playing
         handleAudioAction(actionsData.audio, actionComplete);
+        break;
+
+      case 4:
+        handleTransformAction(actionsData.transformTarget, actionsData.transformType, actionsData.transformValue);
+        // Set clicked time for the button incrementally
+        let clickTime = buttonClickTimes.get(entity) || 0;
+        buttonClickTimes.set(entity, clickTime + 1);
+        clickTime = buttonClickTimes.get(entity) || 0;
+        console.log(`Button ${entity} clicked ${clickTime} times.`);
+        const times = actionsData.transformTimes;
+        if (clickTime >= times) {
+          buttonClickTimes.set(entity, 0);
+          if (shouldHideButton) {
+            const button = world.eid2obj.get(entity);
+            if (button) button.visible = false;
+            else console.error(`Button with entity ${entity} not found.`);
+            actionComplete();
+          }
+          actionComplete();
+        } 
         break;
 
       default:
@@ -326,6 +413,7 @@ export function ImageButtonSystem(world: HubsWorld) {
     if (data.triggerType === "scenario" && typeof data.triggerValue === "string") {
       scenarioButtons.set(entity, parseInt(data.triggerValue, 10));
     }
+    buttonClickTimes.set(entity, 0);
     logImageButtonData("Entered", entity, data);
   });
 
