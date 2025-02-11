@@ -301,6 +301,12 @@ function handleActionsAfterClick(
 
     switch (action.value) {
       case 1: // Hide
+        if (actionsAfterClick.length === 1) {
+          const button = world.eid2obj.get(entity);
+          if (button) button.visible = false;
+          else console.error(`Button with entity ${entity} not found.`);
+          actionComplete();
+        }
         break;
 
       case 2: // Animation
