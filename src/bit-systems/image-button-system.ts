@@ -206,6 +206,7 @@ function handleTransformAction(
   transformTarget: string, // The target object to transform
   transformType: string, // The transform type (e.g., "rotation", "scale", "position")
   transformValue: string, // The transform value (e.g., "0 0 0", "1 1 1", "0 0 0 0")
+  transformSpeed: string,
   // callback: () => void
 ) {
   console.log("Transforming object:", {
@@ -244,14 +245,54 @@ function handleTransformAction(
     case "translate":
       console.log("Setting position:", values);
       // get current position
-      const currentPosition = targetObject.getAttribute('position')
+      // const currentPosition = targetObject.getAttribute('position')
+      // if (!currentPosition) {
+      //   console.error("Current position not found.");
+      //   return;
+      // }
+      // const targetPosition = targetObject.object3D.position;
+      // const newTargetPosition = `${targetPosition.x + values[0]} ${targetPosition.y + values[1]} ${targetPosition.z + values[2]}`;
+      // targetObject.setAttribute('position', newTargetPosition); break;
+      const currentPosition = targetObject.object3D.position;
+
       if (!currentPosition) {
         console.error("Current position not found.");
         return;
       }
-      const targetPosition = targetObject.object3D.position;
-      const newTargetPosition = `${targetPosition.x + values[0]} ${targetPosition.y + values[1]} ${targetPosition.z + values[2]}`;
-      targetObject.setAttribute('position', newTargetPosition); break;
+
+      if (!Array.isArray(values) || values.length < 3) {
+        console.error("Invalid values array.");
+        return;
+      }
+
+      // Define target position
+      const targetPosition = new THREE.Vector3(
+        currentPosition.x + values[0],
+        currentPosition.y + values[1],
+        currentPosition.z + values[2]
+      );
+
+      // Define animation speed (adjust for smoother/slower movement)
+      // const speed = 0.05; // Adjust this value for different speeds
+      const speedValue = parseFloat(transformSpeed);
+
+      function lerpMovement() {
+        // Gradually interpolate between the current position and target
+        currentPosition.lerp(targetPosition, speedValue);
+
+        // Update A-Frame position manually (because object3D does not auto-sync)
+        targetObject.setAttribute('position', `${currentPosition.x} ${currentPosition.y} ${currentPosition.z}`);
+
+        // Continue updating until close enough to target
+        if (currentPosition.distanceTo(targetPosition) > 0.01) {
+          requestAnimationFrame(lerpMovement);
+        }
+      }
+
+      // Start the animation loop
+      lerpMovement();
+
+      break;
     default:
       console.error("Invalid transform type:", transformType);
   }
@@ -340,7 +381,7 @@ function handleActionsAfterClick(
         break;
 
       case 4:
-        handleTransformAction(actionsData.transformTarget, actionsData.transformType, actionsData.transformValue);
+        handleTransformAction(actionsData.transformTarget, actionsData.transformType, actionsData.transformValue, actionsData.transformSpeed);
         // Set clicked time for the button incrementally
         let clickTime = buttonClickTimes.get(entity) || 0;
         buttonClickTimes.set(entity, clickTime + 1);
@@ -356,7 +397,7 @@ function handleActionsAfterClick(
             actionComplete();
           }
           actionComplete();
-        } 
+        }
         break;
 
       default:
