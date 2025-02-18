@@ -335,6 +335,38 @@ function handleTransformAction(
   // callback();
 }
 
+function handleVisbilityAction(visibilityTarget: string, visibilityType: string, callback: () => void) {
+  console.log("Visibility action:", {
+    visibilityTarget,
+    visibilityType,
+  });
+
+  const targetObject = document.getElementsByClassName(visibilityTarget)[0] as AElement;
+  if (!targetObject) {
+    console.error("Target object not found.");
+    return;
+  }
+
+  switch (visibilityType) {
+    case "deactivate":
+      targetObject.setAttribute("visible", "false");
+      break;
+    case "activate":
+      targetObject.setAttribute("visible", "true");
+      break;
+    default:
+      console.error("Invalid visibility type:", visibilityType);
+  }
+  callback();
+}
+
+function handleHideAction(entity: number, world: HubsWorld, actionComplete: () => void) {
+    const button = world.eid2obj.get(entity);
+    if (button) button.visible = false;
+    else console.error(`Button with entity ${entity} not found.`);
+    actionComplete();
+}
+
 /**
  * Handle post-click actions for an image button.
  * @param {any[]} actionsAfterClick - List of actions to process.
@@ -378,20 +410,15 @@ function handleActionsAfterClick(
     switch (action.value) {
       case 1: // Hide
         if (actionsAfterClick.length === 1) {
-          const button = world.eid2obj.get(entity);
-          if (button) button.visible = false;
-          else console.error(`Button with entity ${entity} not found.`);
-          actionComplete();
+          handleHideAction(entity, world, actionComplete);
         }
         break;
 
       case 2: // Animation
         if (shouldHideButton) {
-          const button = world.eid2obj.get(entity);
-          if (button) button.visible = false;
-          else console.error(`Button with entity ${entity} not found.`);
-          actionComplete();
+          handleHideAction(entity, world, actionComplete);
         }
+        
         const { animationName, animationTarget, animationValue } = actionsData;
         if (animationName && animationTarget && animationValue) {
           console.log("Playing animation:", {
@@ -406,10 +433,7 @@ function handleActionsAfterClick(
 
       case 3: // Audio
         if (shouldHideButton) {
-          const button = world.eid2obj.get(entity);
-          if (button) button.visible = false;
-          else console.error(`Button with entity ${entity} not found.`);
-          actionComplete();
+          handleHideAction(entity, world, actionComplete);
         }
         // Do actionComplete() when the audio is finished playing
         handleAudioAction(actionsData.audio, actionComplete);
@@ -426,15 +450,17 @@ function handleActionsAfterClick(
         if (clickTime >= times) {
           buttonClickTimes.set(entity, 0);
           if (shouldHideButton) {
-            const button = world.eid2obj.get(entity);
-            if (button) button.visible = false;
-            else console.error(`Button with entity ${entity} not found.`);
-            actionComplete();
+            handleHideAction(entity, world, actionComplete);
           }
           actionComplete();
         }
         break;
-
+      case 5:
+        if (shouldHideButton) {
+          handleHideAction(entity, world, actionComplete);
+        }
+        handleVisbilityAction(actionsData.visibilityTarget, actionsData.visibilityType, actionComplete);
+        break;
       default:
         console.warn(`Unhandled action value: ${action.value}`);
     }
