@@ -21,7 +21,7 @@ const ImageButtonExitQuery = exitQuery(ImageButtonQuery);
 const scenarioButtons: Map<number, number> = new Map();
 const buttonClickTimes: Map<number, number> = new Map();
 let currentAudio: HTMLAudioElement | null = null;
-
+let syncButtonEnable: boolean = false;
 /**
  * Check if an entity has been clicked.
  * @param {HubsWorld} world - The current world instance.
@@ -361,10 +361,10 @@ function handleVisbilityAction(visibilityTarget: string, visibilityType: string,
 }
 
 function handleHideAction(entity: number, world: HubsWorld, actionComplete: () => void) {
-    const button = world.eid2obj.get(entity);
-    if (button) button.visible = false;
-    else console.error(`Button with entity ${entity} not found.`);
-    actionComplete();
+  const button = world.eid2obj.get(entity);
+  if (button) button.visible = false;
+  else console.error(`Button with entity ${entity} not found.`);
+  actionComplete();
 }
 
 /**
@@ -418,7 +418,7 @@ function handleActionsAfterClick(
         if (shouldHideButton) {
           handleHideAction(entity, world, actionComplete);
         }
-        
+
         const { animationName, animationTarget, animationValue } = actionsData;
         if (animationName && animationTarget && animationValue) {
           console.log("Playing animation:", {
@@ -539,6 +539,8 @@ export function ImageButtonSystem(world: HubsWorld) {
     const data = getImageButtonData(entity);
     // Check if the button is clicked
     if (clicked(world, entity)) {
+      syncButtonEnable = APP.hubChannel!.can('sync_button');
+      console.log("sync_button", syncButtonEnable);
       // Log the clicked button data
       // logImageButtonData("Clicked", entity, data);
       // Mark the button as clicked

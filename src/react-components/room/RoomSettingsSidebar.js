@@ -212,6 +212,10 @@ export function RoomSettingsSidebar({
               label={<FormattedMessage id="room-settings-sidebar.fly" defaultMessage="Allow flying" />}
               {...register("member_permissions.fly")}
             />
+            <ToggleInput
+              label={<FormattedMessage id="room-settings-sidebar.sync-button" defaultMessage="Sync button" />}
+              {...register("member_permissions.sync_button")}
+            />
           </div>
         </InputField>
         <InputField
